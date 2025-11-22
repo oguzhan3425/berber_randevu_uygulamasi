@@ -1,0 +1,90 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="berber_randevu_uygulamasi.Views.KayitOlSayfasi"
+             BackgroundColor="#E5E2DA"
+             Title="Kayıt Ol">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="40,100"
+                             Spacing="25"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center">
+
+            <!-- Kart görünümü -->
+            <Border BackgroundColor="White"
+                   StrokeShape="25"
+                   StrokeThickness="0"
+                   Padding="40"
+                   WidthRequest="300">
+
+                <VerticalStackLayout Spacing="20">
+
+                    <!-- Başlık -->
+                    <Label Text="Kayıt Ol"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           TextColor="#2C2B20" />
+
+                    <!-- Ad -->
+                    <Entry x:Name="AdEntry"
+                           Placeholder="Ad"
+                           TextColor="#2C2B20"
+                           PlaceholderColor="#999"
+                           FontSize="16" />
+
+                    <!-- Soyad -->
+                    <Entry x:Name="SoyadEntry"
+                           Placeholder="Soyad"
+                           TextColor="#2C2B20"
+                           PlaceholderColor="#999"
+                           FontSize="16" />
+
+                    <!-- Kullanıcı Adı -->
+                    <Entry x:Name="KullaniciAdiEntry"
+                           Placeholder="Kullanıcı Adı"
+                           TextColor="#2C2B20"
+                           PlaceholderColor="#999"
+                           FontSize="16" />
+
+                    <!-- E-posta -->
+                    <Entry x:Name="EmailEntry"
+                           Placeholder="E-posta"
+                           TextColor="#2C2B20"
+                           PlaceholderColor="#999"
+                           Keyboard="Email"
+                           FontSize="16" />
+
+                    <!-- Şifre -->
+                    <Entry x:Name="SifreEntry"
+                           Placeholder="Şifre"
+                           IsPassword="True"
+                           TextColor="#2C2B20"
+                           PlaceholderColor="#999"
+                           FontSize="16" />
+
+                    <!-- Kayıt Ol Butonu -->
+                    <Button Text="Kayıt Ol"
+                            BackgroundColor="#3A3A1F"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="20"
+                            HeightRequest="45"
+                            Clicked="KayitOl_Clicked" />
+
+                    <!-- Giriş Yap bağlantısı -->
+                    <Label Text="Giriş Yap"
+                           FontAttributes="Bold"
+                           FontSize="16"
+                           HorizontalOptions="Center"
+                           TextColor="#2C2B20">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="GirisYap_Tapped"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

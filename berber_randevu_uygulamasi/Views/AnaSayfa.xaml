@@ -1,0 +1,125 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="berber_randevu_uygulamasi.Views.AnaSayfa"
+             BackgroundColor="#F6EEDD">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- ÜST KISIM -->
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <!-- Hoş geldin + Profil -->
+            <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
+
+                <!-- Profil Foto (SOLDA) -->
+                <Border Grid.Column="0"
+            StrokeThickness="0"
+            BackgroundColor="Transparent"
+            HeightRequest="70"
+            WidthRequest="70"
+            StrokeShape="RoundRectangle 100"
+            VerticalOptions="Center">
+                    <Image Source="pp.png" Aspect="AspectFill"/>
+                </Border>
+
+                <!-- Hoşgeldin yazıları (SAĞDA) -->
+                <VerticalStackLayout Grid.Column="1" Padding="15,0,0,0">
+                    <Label Text="Hoş geldin,"
+               FontSize="32"
+               TextColor="Black"/>
+                    <Label Text="Oğuzhan 👋"
+               FontSize="32"
+               FontAttributes="Bold"
+               TextColor="Black"/>
+                </VerticalStackLayout>
+
+            </Grid>
+
+
+            <!-- Geçmiş Randevularım Butonu -->
+            <Border BackgroundColor="#3A2A1A"
+                    StrokeThickness="0"
+                    Padding="18"
+                    StrokeShape="RoundRectangle 20">
+
+                <Grid>
+                    <Label Text="Geçmiş Randevularım"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               FontSize="20"
+               TextColor="White"/>
+                </Grid>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="GecmisRandevular_Tapped"/>
+                </Border.GestureRecognizers>
+            </Border>
+
+
+            <!-- Bugünkü Randevular -->
+            <Label Text="Bugünkü Randevular"
+                   FontSize="24"
+                   Margin="0,10,0,0"
+                   TextColor="Black"/>
+
+            <Border BackgroundColor="#E8D8BE"
+                    StrokeThickness="0"
+                    Padding="20"
+                    StrokeShape="RoundRectangle 20">
+
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Ahmet Yılmaz – 14:30"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="Black"/>
+
+                    <Label Text="Saç + Sakal"
+                           FontSize="18"
+                           TextColor="Black"/>
+                </VerticalStackLayout>
+
+            </Border>
+
+        </VerticalStackLayout>
+
+
+        <!-- ALT BAR -->
+        <Grid Grid.Row="2"
+              BackgroundColor="#3A2A1A"
+              HeightRequest="65"
+              ColumnDefinitions="*,*,*">
+
+            <!-- Ana Sayfa -->
+            <ImageButton Grid.Column="0"
+                         Source="home.png"
+                         BackgroundColor="Transparent"
+                         HeightRequest="35"
+                         WidthRequest="35"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Clicked="AnaSayfaClicked"/>
+
+            <!-- Randevu Al -->
+            <ImageButton Grid.Column="1"
+                         Source="scissors.png"
+                         BackgroundColor="Transparent"
+                         HeightRequest="35"
+                         WidthRequest="35"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Clicked="RandevuAlClicked"/>
+
+            <!-- Profil -->
+            <ImageButton Grid.Column="2"
+                         Source="user.png"
+                         BackgroundColor="Transparent"
+                         HeightRequest="35"
+                         WidthRequest="35"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Clicked="ProfilClicked"/>
+
+        </Grid>
+
+    </Grid>
+</ContentPage>
