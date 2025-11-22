@@ -70,7 +70,7 @@
                     </Border>
 
                     <!-- E POSTA -->
-                    <Label Text="E-posta"
+                    <Label Text="Eposta"
                            FontSize="17"
                            FontAttributes="Bold"
                            TextColor="Black"/>
