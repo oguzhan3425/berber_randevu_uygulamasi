@@ -28,14 +28,14 @@ namespace berber_randevu_uygulamasi.Views
         {
             // geçiþ kodunu koyacam
         }
-        private void AnaSayfaClicked(object sender, EventArgs e)
+        private async void AnaSayfaClicked(object sender, EventArgs e)
         {
-            // Ana sayfadan baþlýyor ama butonuda eksik olabilir bakacam
+            await Navigation.PushAsync(new AnaSayfa(_ad, _soyad));
         }
          
-        private void RandevuAlClicked(object sender, EventArgs e)
+        private async void RandevuAlClicked(object sender, EventArgs e)
         {
-            // geçiþ kodunu koyacam
+            await Navigation.PushAsync(new RandevuAlSayfasi(_ad, _soyad));
         }
 
         private void HizmetlerClicked(object sender, EventArgs e)

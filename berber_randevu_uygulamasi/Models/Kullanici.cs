@@ -14,5 +14,6 @@ namespace berber_randevu_uygulamasi.Models
         public string KullaniciAdi { get; set; } = string.Empty;
         public string Eposta { get; set; } = string.Empty;
         public string Sifre { get; set; } = string.Empty;
+        public string KullaniciTipi { get; set; } = string.Empty;
     }
 }

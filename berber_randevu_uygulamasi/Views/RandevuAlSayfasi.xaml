@@ -2,11 +2,130 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="berber_randevu_uygulamasi.Views.RandevuAlSayfasi"
-             Title="RandevuAlSayfasi">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             BackgroundColor="#F6EEDD">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- ÜST KISIM: Arama + Başlık -->
+        <VerticalStackLayout Grid.Row="0"
+                             Padding="20,20,20,10"
+                             Spacing="20">
+
+            <!-- Arama Kutusu -->
+            <Border BackgroundColor="#E8D8BE"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 24"
+                    Padding="14,10"
+                    HorizontalOptions="Fill">
+                <Grid ColumnDefinitions="Auto,*"
+                      VerticalOptions="Center">
+
+                    <!-- Arama ikonu -->
+                    <Image Source="search_icon.png"
+                           HeightRequest="22"
+                           WidthRequest="22"
+                           VerticalOptions="Center"
+                           Margin="0,0,10,0" />
+
+                    <!-- Arama Entry -->
+                    <Entry x:Name="BerberAraEntry"
+                           Grid.Column="1"
+                           Placeholder="Berber ara"
+                           FontSize="18"
+                           BackgroundColor="Transparent"
+                           TextColor="Black" />
+                </Grid>
+            </Border>
+
+            <!-- Başlık -->
+            <Label Text="Berber seçin"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="Black"
+                   Margin="0,10,0,0" />
+        </VerticalStackLayout>
+
+
+        <!-- ORTA KISIM: Berber Listesi (VERİTABANINDAN GELENLER) -->
+        <CollectionView x:Name="BerberCollection"
+                        Grid.Row="1"
+                        Margin="20,10"
+                        SelectionMode="Single">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <Border BackgroundColor="#E8D8BE"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 28"
+                            Padding="16"
+                            Margin="0,8">
+
+                        <HorizontalStackLayout Spacing="16"
+                                               VerticalOptions="Center">
+
+                            <!-- Profil Foto (şimdilik varsayılan) -->
+                            <Border HeightRequest="70"
+                                    WidthRequest="70"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 100">
+                                <!-- İstersen default_berber.png koy -->
+                                <Image Source="default_berber.png"
+                                       Aspect="AspectFill" />
+                            </Border>
+
+                            <!-- Berber Adı (DB'den geliyor) -->
+                            <Label Text="{Binding}"
+                                   FontSize="24"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   TextColor="Black" />
+                        </HorizontalStackLayout>
+
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+
+        <!-- ALT BAR -->
+        <Grid Grid.Row="2"
+              BackgroundColor="#3A2A1A"
+              HeightRequest="65"
+              ColumnDefinitions="*,*,*">
+
+            <!-- Ana Sayfa -->
+            <ImageButton Grid.Column="0"
+                         Source="home.png"
+                         BackgroundColor="Transparent"
+                         HeightRequest="32"
+                         WidthRequest="32"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Clicked="AnaSayfaClicked" />
+
+            <!-- Randevu Al (aktif sayfa) -->
+            <ImageButton Grid.Column="1"
+                         Source="scissors.png"
+                         BackgroundColor="Transparent"
+                         HeightRequest="32"
+                         WidthRequest="32"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Clicked="RandevuAlClicked" />
+
+            <!-- Profil -->
+            <ImageButton Grid.Column="2"
+                         Source="user.png"
+                         BackgroundColor="Transparent"
+                         HeightRequest="32"
+                         WidthRequest="32"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Clicked="ProfilClicked" />
+
+        </Grid>
+
+    </Grid>
 </ContentPage>
