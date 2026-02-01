@@ -44,7 +44,12 @@
                 HeightRequest="50"
                 Clicked="GirisYap_Clicked"
                 WidthRequest="250"/>
-
+        <Button
+                Text="Direkt Berber Paneli (Test)"
+                Margin="0,10,0,0"
+                BackgroundColor="#444"
+                TextColor="White"
+                Clicked="DirektBerber_Clicked" />
         <Label Text="Hesabın yok mu?"
                HorizontalOptions="Center"
                FontSize="16"

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="berber_randevu_uygulamasi.Views.BerberAyarlarSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
+    Title="Ayarlar"
+    BackgroundColor="#0F0F0F">
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="12,10" Spacing="12">
+
+                <Label Text="Ayarlar" FontSize="20" FontAttributes="Bold" TextColor="#F2F2F2"/>
+
+                <!-- Çalışma Saatleri (Örnek: Pazartesi) -->
+                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Çalışma Saatleri (Pazartesi)" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Pazartesi Açık" TextColor="#F2F2F2"/>
+                            <Switch Grid.Column="1" x:Name="swPzt" IsToggled="True"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout>
+                                <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
+                                <TimePicker x:Name="tpAc" Time="10:00:00"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1">
+                                <Label Text="Kapanış" FontSize="12" TextColor="#BDBDBD"/>
+                                <TimePicker x:Name="tpKapa" Time="20:00:00"/>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <Label Text="Slot kapasitesi (aynı saatte kaç kişi)" FontSize="12" TextColor="#BDBDBD"/>
+                        <Entry x:Name="entryKapasite" Text="1" Keyboard="Numeric"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- İşletme Bilgileri -->
+                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="İşletme Bilgileri" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                        <Entry x:Name="entryDukkanAdi" Placeholder="Dükkan adı" Text="Oğuzhan Barber"/>
+                        <Entry x:Name="entryAdres" Placeholder="Adres" Text="İstanbul"/>
+                        <Editor x:Name="editorAciklama" Placeholder="Kısa açıklama" AutoSize="TextChanges" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button Text="Kaydet" Clicked="Kaydet_Clicked"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <altbar:BerberAltBar Grid.Row="1"/>
+    </Grid>
+</ContentPage>

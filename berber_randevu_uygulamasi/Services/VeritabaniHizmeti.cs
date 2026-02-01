@@ -152,9 +152,10 @@ namespace berber_randevu_uygulamasi.Services
                     {
                         CalisanID = dr.GetInt32(0),
                         BerberID = dr.GetInt32(1),
-                        AdSoyad = dr.GetString(2),
-                        DeneyimYili = dr.IsDBNull(3) ? 0 : dr.GetInt32(3),
-                        ResimYolu = dr.IsDBNull(4) ? "" : dr.GetString(4)
+                        Ad = dr.GetString(2),
+                        Soyad = dr.GetString(2),
+                        Uzmanlik = dr.IsDBNull(3) ? "" : dr.GetString(3),
+                        Foto = dr.IsDBNull(4) ? "" : dr.GetString(4)
                     };
 
                     liste.Add(c);

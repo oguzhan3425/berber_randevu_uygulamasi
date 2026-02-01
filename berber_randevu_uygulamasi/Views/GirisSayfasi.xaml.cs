@@ -1,7 +1,5 @@
-using Microsoft.Maui.Controls;
+ï»¿using Microsoft.Maui.Controls;
 using Microsoft.Data.SqlClient;
-using System;
-using System.Threading.Tasks;
 
 namespace berber_randevu_uygulamasi.Views
 {
@@ -17,41 +15,67 @@ namespace berber_randevu_uygulamasi.Views
 
         private async void GirisYap_Clicked(object sender, EventArgs e)
         {
-            string kullaniciAdi = kullaniciAdiEntry.Text;
+            string kadi = kullaniciAdiEntry.Text;
             string sifre = SifreEntry.Text;
 
-            if (string.IsNullOrWhiteSpace(kullaniciAdi) || string.IsNullOrWhiteSpace(sifre))
+            if (string.IsNullOrWhiteSpace(kadi) || string.IsNullOrWhiteSpace(sifre))
             {
-                await DisplayAlert("Uyarý", "Lütfen kullanýcý adý ve þifreyi giriniz.", "Tamam");
+                await DisplayAlert("UyarÄ±", "LÃ¼tfen kullanÄ±cÄ± adÄ± ve ÅŸifreyi giriniz.", "Tamam");
                 return;
             }
 
             try
             {
-                using (SqlConnection baglanti = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    await baglanti.OpenAsync();
+                    await conn.OpenAsync();
 
-                    string sorgu = "SELECT KullaniciTipi FROM Kullanici WHERE KullaniciAdi = @KullaniciAdi AND Sifre = @Sifre";
+                    string sql = @"
+                        SELECT ID, Ad, Soyad, KullaniciTipi
+                        FROM Kullanici
+                        WHERE KullaniciAdi = @kadi AND Sifre = @sifre";
 
-                    using (SqlCommand komut = new SqlCommand(sorgu, baglanti))
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        komut.Parameters.AddWithValue("@KullaniciAdi", kullaniciAdi);
-                        komut.Parameters.AddWithValue("@Sifre", sifre);
+                        cmd.Parameters.AddWithValue("@kadi", kadi);
+                        cmd.Parameters.AddWithValue("@sifre", sifre);
 
-                        object? tipObj = await komut.ExecuteScalarAsync();
+                        using (SqlDataReader rd = await cmd.ExecuteReaderAsync())
+                        {
+                            if (await rd.ReadAsync())
+                            {
+                                int id = rd.GetInt32(0);
+                                string ad = rd.GetString(1);
+                                string soyad = rd.GetString(2);
+                                string tip = rd.GetString(3);
 
-                        if (tipObj != null)
-                        {
-                            string kullaniciTipi = tipObj.ToString() ?? "Musteri";
-                            await DisplayAlert("Test", $"Kullanýcý tipi: {kullaniciTipi}", "Tamam");
-                            await DisplayAlert("Baþarýlý", "Giriþ baþarýlý!", "Tamam");
-                            // AnaSayfa constructor'unu senin yapýna göre düzenle
-                            await Navigation.PushAsync(new AnaSayfa(kullaniciAdi, kullaniciTipi));
-                        }
-                        else
-                        {
-                            await DisplayAlert("Hata", "Kullanýcý adý veya þifre hatalý!", "Tekrar Dene");
+                                string adSoyad = ad + " " + soyad;
+
+                                // ðŸŽ¯ Rol bazlÄ± yÃ¶nlendirme
+                                if (tip == "Berber")
+                                {
+                                    await Navigation.PushAsync(new BerberAnaPanelSayfasi());
+                                    return;
+                                }
+
+                               // if (tip == "Calisan")
+                               // {
+                               //     await Navigation.PushAsync(new CalisanAnaSayfa(id, adSoyad));
+                               //     return;
+                             //   }
+
+                                if (tip == "Musteri")
+                                {
+                                    await Navigation.PushAsync(new AnaSayfa(tip, adSoyad));
+                                    return;
+                                }
+
+                                await DisplayAlert("Hata", "KullanÄ±cÄ± tipi tanÄ±mlanmamÄ±ÅŸ.", "Tamam");
+                            }
+                            else
+                            {
+                                await DisplayAlert("Hata", "KullanÄ±cÄ± adÄ± veya ÅŸifre hatalÄ±!", "Tekrar Dene");
+                            }
                         }
                     }
                 }
@@ -61,12 +85,18 @@ namespace berber_randevu_uygulamasi.Views
                 await DisplayAlert("Hata", ex.Message, "Tamam");
             }
         }
+        private async void DirektBerber_Clicked(object sender, EventArgs e)
+        {
+            
 
+            await Navigation.PushAsync(new BerberAnaPanelSayfasi());
+        }
         private async void KayitOl_Tapped(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new KayitOlSayfasi());
         }
-
+        
+        
         private void KullaniciAdiEntry_Completed(object sender, EventArgs e)
         {
             SifreEntry.Focus();

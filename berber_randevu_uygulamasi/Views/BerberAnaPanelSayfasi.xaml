@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="berber_randevu_uygulamasi.Views.BerberAnaPanelSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
+    Title="Ana Panel"
+    BackgroundColor="#0F0F0F">
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="12,10" Spacing="12">
+
+                <!-- Üst Profil Kartı -->
+                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+                        <Border BackgroundColor="#232323" StrokeShape="RoundRectangle 14" WidthRequest="52" HeightRequest="52">
+                            <Label Text="✂️" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2">
+                            <Label Text="Oğuzhan Barber" FontSize="18" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                            <Label Text="Merkez Şube" FontSize="12" TextColor="#BDBDBD"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Bugün Özet -->
+                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Bugün" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Border BackgroundColor="#232323" StrokeShape="RoundRectangle 14" Padding="12">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Randevu" FontSize="12" TextColor="#BDBDBD"/>
+                                    <Label x:Name="lblBugunRandevu" Text="0" FontSize="24" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <Border Grid.Column="1" BackgroundColor="#232323" StrokeShape="RoundRectangle 14" Padding="12">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Sıradaki" FontSize="12" TextColor="#BDBDBD"/>
+                                    <Label x:Name="lblSiradakiIsim" Text="—" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                                    <Label x:Name="lblSiradakiSaat" Text="—" FontSize="12" TextColor="#BDBDBD"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="Bugün Randevular" Clicked="BugunRandevular_Clicked"/>
+                            <Button Grid.Column="1" Text="Çalışma Saatleri" Clicked="CalismaSaatleri_Clicked"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Uyarılar -->
+                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Uyarılar" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                        <Label Text="• Bugün iptal edilen randevu yok." FontSize="12" TextColor="#BDBDBD"/>
+                        <Label Text="• 15 dk içinde randevu: yok." FontSize="12" TextColor="#BDBDBD"/>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <altbar:BerberAltBar Grid.Row="1"/>
+    </Grid>
+</ContentPage>

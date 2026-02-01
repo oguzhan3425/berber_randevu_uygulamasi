@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="berber_randevu_uygulamasi.Views.AltBarlar.BerberAltBar"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#141414">
+
+    <Grid Padding="10,8" ColumnDefinitions="*,*,*,*,*">
+        <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center">
+            <Label Text="🏠" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Panel" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Panel_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+            <Label Text="📅" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Randevu" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Randevu_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
+            <Label Text="👥" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Çalışan" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Calisan_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center">
+            <Label Text="💰" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Hizmet" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Hizmet_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center">
+            <Label Text="⚙️" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Ayar" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Ayar_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
+    </Grid>
+</ContentView>

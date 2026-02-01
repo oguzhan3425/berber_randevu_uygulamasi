@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="berber_randevu_uygulamasi.Views.BerberHizmetlerSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
+    Title="Hizmetler"
+    BackgroundColor="#0F0F0F">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Grid Padding="12,10" ColumnDefinitions="*,Auto">
+            <Label Text="Hizmetler &amp; Fiyatlar" FontSize="20" FontAttributes="Bold" TextColor="#F2F2F2"/>
+            <Button Grid.Column="1" Text="＋" Clicked="Ekle_Clicked"/>
+        </Grid>
+
+        <CollectionView Grid.Row="1" x:Name="listeHizmet">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14" Margin="12,8">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding Ad}" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                                <Label Text="{Binding Sure}" FontSize="12" TextColor="#BDBDBD"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="{Binding Fiyat}" FontAttributes="Bold" HorizontalTextAlignment="End" TextColor="#F2F2F2"/>
+                                <Button Text="Düzenle" Clicked="Duzenle_Clicked" CommandParameter="{Binding}"/>
+                                <Button Text="Aktif/Pasif" Clicked="AktifPasif_Clicked" CommandParameter="{Binding}"/>
+                            </VerticalStackLayout>
+
+                            <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Durum}" FontSize="12" TextColor="#BDBDBD"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <altbar:BerberAltBar Grid.Row="2"/>
+    </Grid>
+</ContentPage>

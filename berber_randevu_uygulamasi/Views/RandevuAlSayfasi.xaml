@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:berber_randevu_uygulamasi.Models"
              x:Class="berber_randevu_uygulamasi.Views.RandevuAlSayfasi"
              BackgroundColor="#F6EEDD">
 
@@ -17,6 +18,7 @@
                     StrokeShape="RoundRectangle 24"
                     Padding="14,10"
                     HorizontalOptions="Fill">
+
                 <Grid ColumnDefinitions="Auto,*"
                       VerticalOptions="Center">
 
@@ -33,7 +35,8 @@
                            Placeholder="Berber ara"
                            FontSize="18"
                            BackgroundColor="Transparent"
-                           TextColor="Black" />
+                           TextColor="Black"
+                           TextChanged="BerberAraEntry_TextChanged"/>
                 </Grid>
             </Border>
 
@@ -44,17 +47,23 @@
                    HorizontalOptions="Center"
                    TextColor="Black"
                    Margin="0,10,0,0" />
+
         </VerticalStackLayout>
 
 
-        <!-- ORTA KISIM: Berber Listesi (VERİTABANINDAN GELENLER) -->
+        <!-- ORTA KISIM: Berber Listesi -->
         <CollectionView x:Name="BerberCollection"
+                        SelectionChanged="BerberCollection_SelectionChanged"
                         Grid.Row="1"
                         Margin="20,10"
                         SelectionMode="Single">
 
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="20" />
+            </CollectionView.ItemsLayout>
+
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
+                <DataTemplate x:DataType="models:Berber">
                     <Border BackgroundColor="#E8D8BE"
                             StrokeThickness="0"
                             StrokeShape="RoundRectangle 28"
@@ -62,24 +71,24 @@
                             Margin="0,8">
 
                         <HorizontalStackLayout Spacing="16"
-                                               VerticalOptions="Center">
+                               VerticalOptions="Center">
 
-                            <!-- Profil Foto (şimdilik varsayılan) -->
+                            <!-- Profil fotoğrafı -->
                             <Border HeightRequest="70"
                                     WidthRequest="70"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 100">
-                                <!-- İstersen default_berber.png koy -->
-                                <Image Source="default_berber.png"
-                                       Aspect="AspectFill" />
+
+                                <Image Source="{Binding ResimYolu}"
+                       Aspect="AspectFill" />
                             </Border>
 
-                            <!-- Berber Adı (DB'den geliyor) -->
-                            <Label Text="{Binding}"
-                                   FontSize="24"
-                                   FontAttributes="Bold"
-                                   VerticalOptions="Center"
-                                   TextColor="Black" />
+                            <!-- Berber Adı -->
+                            <Label Text="{Binding BerberAdi}"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center"
+                   TextColor="Black" />
                         </HorizontalStackLayout>
 
                     </Border>
@@ -105,7 +114,7 @@
                          VerticalOptions="Center"
                          Clicked="AnaSayfaClicked" />
 
-            <!-- Randevu Al (aktif sayfa) -->
+            <!-- Randevu Al -->
             <ImageButton Grid.Column="1"
                          Source="scissors.png"
                          BackgroundColor="Transparent"

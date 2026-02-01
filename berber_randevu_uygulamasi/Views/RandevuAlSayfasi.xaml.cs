@@ -1,18 +1,19 @@
 using Microsoft.Data.SqlClient;
 using System.Collections.ObjectModel;
+using berber_randevu_uygulamasi.Models;
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class RandevuAlSayfasi : ContentPage
     {
+        // Berber listesi artýk STRING deðil -> MODEL
+        private List<Berber> tumBerberler = new List<Berber>();
+
         private readonly string connectionString =
             "Data Source=localhost\\SQLEXPRESS;Initial Catalog=BerberDB;Integrated Security=True;TrustServerCertificate=True;";
 
         private string _ad = "";
         private string _soyad = "";
-
-        // Listeyi tutmak için koleksiyon
-        public ObservableCollection<string> BerberListesi { get; set; } = new();
 
         public RandevuAlSayfasi(string ad, string soyad)
         {
@@ -24,7 +25,6 @@ namespace berber_randevu_uygulamasi.Views
             BerberleriYukle();
         }
 
-        // Parametresiz constructor (gerekirse)
         public RandevuAlSayfasi()
         {
             InitializeComponent();
@@ -39,29 +39,69 @@ namespace berber_randevu_uygulamasi.Views
         {
             try
             {
-                using SqlConnection conn = new(connectionString);
-                await conn.OpenAsync();
+                tumBerberler.Clear();
 
-                string query = "SELECT BerberAdi FROM Berberler";
-
-                using SqlCommand cmd = new(query, conn);
-                using SqlDataReader reader = await cmd.ExecuteReaderAsync();
-
-                BerberListesi.Clear();
-
-                while (await reader.ReadAsync())
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    BerberListesi.Add(reader.GetString(0)); // BerberAdi
+                    await conn.OpenAsync();
+
+                    string query =
+                        "SELECT BerberID, BerberAdi, Adres, Telefon, ResimYolu, Puan, AcilisSaati, KapanisSaati FROM Berberler";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            string? dbResim = reader.IsDBNull(4) ? null : reader.GetString(4);
+                            tumBerberler.Add(new Berber
+                            {
+                                BerberID = reader.GetInt32(0),
+                                BerberAdi = reader.GetString(1),
+                                Adres = reader.GetString(2),
+                                Telefon = reader.GetString(3),
+                                ResimYolu = string.IsNullOrWhiteSpace(dbResim)
+                                        ? "default_berber.png"
+                                        : dbResim,
+                                Puan = reader.GetDecimal(5),
+                                AcilisSaati = reader.GetTimeSpan(6),
+                                KapanisSaati = reader.GetTimeSpan(7)
+                            });
+                        }
+                    }
                 }
 
-                // XAML'deki CollectionView'e listeyi baðla
-                BerberCollection.ItemsSource = BerberListesi;
+                BerberCollection.ItemsSource = tumBerberler;
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Hata", ex.Message, "Tamam");
+                await DisplayAlert("Hata", "Berberler yüklenemedi: " + ex.Message, "Tamam");
             }
         }
+
+        // ---------------------------
+        //  ARAMA
+        // ---------------------------
+
+        private void BerberAraEntry_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string arama = e.NewTextValue?.ToLower() ?? "";
+
+            var filtreliListe = tumBerberler
+                .Where(b => b.BerberAdi.ToLower().Contains(arama))
+                .ToList();
+
+            BerberCollection.ItemsSource = filtreliListe;
+        }
+
+        private async void BerberCollection_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.CurrentSelection.FirstOrDefault() is Berber secilenBerber)
+            {
+                await Navigation.PushAsync(new CalisanSecimSayfasi(secilenBerber));
+            }
+        }
+
 
         // ---------------------------
         //  ALT BAR EVENTLERÝ
