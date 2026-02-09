@@ -69,6 +69,9 @@
 	  <Compile Update="Views\AltBarlar\BerberAltBar.xaml.cs">
 	    <DependentUpon>BerberAltBar.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Views\AltBarlar\CalisanAltBar.xaml.cs">
+	    <DependentUpon>CalisanAltBar.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\ProfilDuzenleSayfasi.xaml.cs">
 	    <DependentUpon>ProfilDuzenleSayfasi.xaml</DependentUpon>
 	  </Compile>
@@ -76,6 +79,18 @@
 
 	<ItemGroup>
 	  <MauiXaml Update="Views\AltBarlar\BerberAltBar.xaml">
+	    <Generator></Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AltBarlar\CalisanAltBar.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CalisanHizmetlerSayfasi.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CalisanProfilSayfasi.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CalisanRandevularSayfasi.xaml">
 	    <Generator></Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\AnaSayfa.xaml">
@@ -91,9 +106,12 @@
 	    <Generator></Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\BerberHizmetlerSayfasi.xaml">
-	    <Generator>MSBuild:Compile</Generator>
+	    <Generator></Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\BerberRandevularSayfasi.xaml">
+	    <Generator></Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CalisanAnaSayfa.xaml">
 	    <Generator></Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\CalisanSecimSayfasi.xaml">

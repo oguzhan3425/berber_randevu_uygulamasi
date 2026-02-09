@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="berber_randevu_uygulamasi.Views.BerberHizmetlerSayfasi"
+    xmlns:models="clr-namespace:berber_randevu_uygulamasi.Models"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
@@ -15,21 +16,43 @@
 
         <CollectionView Grid.Row="1" x:Name="listeHizmet">
             <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14" Margin="12,8">
-                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="{Binding Ad}" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
-                                <Label Text="{Binding Sure}" FontSize="12" TextColor="#BDBDBD"/>
-                            </VerticalStackLayout>
+                <DataTemplate x:DataType="models:Hizmet">
+              
+                    <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18"
+                Padding="14" Margin="12,8">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
 
-                            <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                <Label Text="{Binding Fiyat}" FontAttributes="Bold" HorizontalTextAlignment="End" TextColor="#F2F2F2"/>
+                            <!-- Sol: Hizmet adı -->
+                            <Label Text="{Binding HizmetAdi}"
+                       FontAttributes="Bold"
+                       FontSize="16"
+                       TextColor="#F2F2F2"/>
+
+                            <!-- Sağ üst: Fiyat (EN SAĞ) -->
+                            <Label Grid.Column="1"
+                       Text="{Binding Fiyat, StringFormat='{0:0} ₺'}"
+                       FontAttributes="Bold"
+                       FontSize="16"
+                       TextColor="#F2F2F2"
+                       HorizontalTextAlignment="End"/>
+
+                            <!-- Süre -->
+                            <Label Grid.Row="1"
+                       Text="{Binding SureDakika, StringFormat='{0} dk'}"
+                       FontSize="12"
+                       TextColor="#BDBDBD"/>
+
+                            <!-- Butonlar -->
+                            <VerticalStackLayout Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="1"
+                                     Spacing="6"
+                                     HorizontalOptions="End"
+                                     Margin="0,28,0,0">
                                 <Button Text="Düzenle" Clicked="Duzenle_Clicked" CommandParameter="{Binding}"/>
                                 <Button Text="Aktif/Pasif" Clicked="AktifPasif_Clicked" CommandParameter="{Binding}"/>
                             </VerticalStackLayout>
 
-                            <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Durum}" FontSize="12" TextColor="#BDBDBD"/>
                         </Grid>
                     </Border>
                 </DataTemplate>

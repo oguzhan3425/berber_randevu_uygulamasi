@@ -1,3 +1,5 @@
+using berber_randevu_uygulamasi.Models;
+
 namespace berber_randevu_uygulamasi.Views;
 
 public partial class BerberRandevularSayfasi : ContentPage
@@ -12,16 +14,16 @@ public partial class BerberRandevularSayfasi : ContentPage
     void MockListeDoldur()
     {
         var gelecek = new List<RandevuKart>
-        {
-            new("14:30","Ahmet Yýlmaz","Saç + Sakal","01 Þub 2026"),
-            new("16:00","Can Aydýn","Saç Kesimi","01 Þub 2026"),
-        };
+{
+    new() { RandevuID=1, SaatText="14:30", TarihText="01.02.2026", MusteriAdSoyad="Ahmet Yýlmaz", HizmetAdi="Saç + Sakal", ToplamUcret=220, MusteriFoto="default_user.png" },
+    new() { RandevuID=2, SaatText="16:00", TarihText="01.02.2026", MusteriAdSoyad="Can Aydýn", HizmetAdi="Saç Kesimi", ToplamUcret=150, MusteriFoto="default_user.png" },
+};
 
         var gecmis = new List<RandevuKart>
-        {
-            new("12:00","Emre Þahin","Sakal","Tamamlandý"),
-            new("13:00","Mert Kaya","Saç Kesimi","Ýptal"),
-        };
+{
+    new() { RandevuID=3, SaatText="12:00", TarihText="30.01.2026", MusteriAdSoyad="Emre Þahin", HizmetAdi="Sakal", DurumText="Tamamlandý", ToplamUcret=100, MusteriFoto="default_user.png" },
+    new() { RandevuID=4, SaatText="13:00", TarihText="29.01.2026", MusteriAdSoyad="Mert Kaya", HizmetAdi="Saç Kesimi", DurumText="Ýptal", ToplamUcret=150, MusteriFoto="default_user.png" },
+};
 
         listeGelecek.ItemsSource = gelecek;
         listeGecmis.ItemsSource = gecmis;
@@ -43,24 +45,13 @@ public partial class BerberRandevularSayfasi : ContentPage
 
     async void Geldi_Clicked(object sender, EventArgs e)
     {
-        if (sender is Button btn && btn.CommandParameter is RandevuKart r)
-            await DisplayAlert("Durum", $"{r.Musteri} geldi olarak iþaretlendi.", "Tamam");
+        if (sender is Button btn && btn.CommandParameter is Randevu r)
+            await DisplayAlert("Durum", $"{r.KullaniciID} geldi olarak iþaretlendi.", "Tamam");
     }
 
     async void Gelmedi_Clicked(object sender, EventArgs e)
     {
-        if (sender is Button btn && btn.CommandParameter is RandevuKart r)
-            await DisplayAlert("Durum", $"{r.Musteri} gelmedi olarak iþaretlendi.", "Tamam");
-    }
-
-    public record RandevuKart(string Saat, string Musteri, string Hizmet, string TarihOrDurum)
-    {
-        public string Saat { get; init; } = Saat;
-        public string Musteri { get; init; } = Musteri;
-        public string Hizmet { get; init; } = Hizmet;
-
-        // Gelecek listesi "Tarih", geçmiþ listesi "Durum" gösteriyor
-        public string Tarih { get; init; } = TarihOrDurum;
-        public string Durum { get; init; } = TarihOrDurum;
+        if (sender is Button btn && btn.CommandParameter is Randevu r)
+            await DisplayAlert("Durum", $"{r.KullaniciID} gelmedi olarak iþaretlendi.", "Tamam");
     }
 }

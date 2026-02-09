@@ -7,5 +7,6 @@
         public string HizmetAdi { get; set; } = string.Empty;
         public decimal Fiyat { get; set; }
         public int SureDakika { get; set; }
+        public string Durum { get; set; } = string.Empty;
     }
 }

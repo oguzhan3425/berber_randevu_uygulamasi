@@ -58,11 +58,11 @@ namespace berber_randevu_uygulamasi.Views
                                     return;
                                 }
 
-                               // if (tip == "Calisan")
-                               // {
-                               //     await Navigation.PushAsync(new CalisanAnaSayfa(id, adSoyad));
-                               //     return;
-                             //   }
+                                if (tip == "Calisan")
+                                {
+                                  await Navigation.PushAsync(new CalisanAnaSayfa());
+                                    return;
+                               }
 
                                 if (tip == "Musteri")
                                 {

@@ -20,7 +20,7 @@ namespace berber_randevu_uygulamasi.Views
         // --- ÇALIÞANLARI YÜKLE ---
         private async void CalisanlariYukle()
         {
-            List<Calisan> liste = new();
+            List<CalisanKart> liste = new();
 
             try
             {
@@ -37,7 +37,7 @@ namespace berber_randevu_uygulamasi.Views
                         k.Ad,
                         k.Soyad,
                         'default_berber.png' AS Foto
-                    FROM Calisanlar c
+                    FROM CalisanKart c
                     INNER JOIN Kullanici k ON c.KullaniciID = k.ID
                     WHERE c.BerberID = @bid";
 
@@ -49,7 +49,7 @@ namespace berber_randevu_uygulamasi.Views
                         {
                             while (await rd.ReadAsync())
                             {
-                                liste.Add(new Calisan
+                                liste.Add(new CalisanKart
                                 {
                                     CalisanID = rd.GetInt32(0),
                                     KullaniciID = rd.GetInt32(1),
@@ -75,7 +75,7 @@ namespace berber_randevu_uygulamasi.Views
         // --- ÇALIÞAN SEÇÝMÝ ---
         private async void CalisanCollection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (e.CurrentSelection.FirstOrDefault() is Calisan secilen)
+            if (e.CurrentSelection.FirstOrDefault() is CalisanKart secilen)
             {
                 // Þimdilik çalýþan bilgisi gösterelim
                 await DisplayAlert("Seçilen Çalýþan",

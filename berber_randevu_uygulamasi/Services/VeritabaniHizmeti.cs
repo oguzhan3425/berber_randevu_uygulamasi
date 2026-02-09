@@ -128,9 +128,9 @@ namespace berber_randevu_uygulamasi.Services
         //  ÇALIŞAN İŞLEMLERİ
         // -----------------------------
 
-        public async Task<List<Calisan>> CalisanlariGetirAsync(int berberId)
+        public async Task<List<CalisanKart>> CalisanlariGetirAsync(int berberId)
         {
-            List<Calisan> liste = new();
+            List<CalisanKart> liste = new();
 
             try
             {
@@ -148,7 +148,7 @@ namespace berber_randevu_uygulamasi.Services
 
                 while (await dr.ReadAsync())
                 {
-                    Calisan c = new Calisan
+                    CalisanKart c = new CalisanKart
                     {
                         CalisanID = dr.GetInt32(0),
                         BerberID = dr.GetInt32(1),

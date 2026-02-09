@@ -20,7 +20,7 @@
                         SelectionChanged="CalisanCollection_SelectionChanged">
 
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Calisan">
+                <DataTemplate x:DataType="models:CalisanKart">
 
                     <Border BackgroundColor="#E8D8BE"
                             StrokeThickness="0"

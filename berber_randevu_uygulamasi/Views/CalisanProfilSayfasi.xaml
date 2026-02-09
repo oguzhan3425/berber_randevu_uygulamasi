@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
+             x:Class="berber_randevu_uygulamasi.Views.CalisanProfilSayfasi"
+             Title="Profil"
+             xmlns:views="clr-namespace:berber_randevu_uygulamasi.Views"
+             x:DataType="views:CalisanAnaSayfa"
+             BackgroundColor="#0F0F0F">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="12" RowSpacing="12">
+
+        <!-- Üst Profil -->
+        <Border BackgroundColor="#1A1A1A"
+                Stroke="#2B2B2B"
+                StrokeShape="RoundRectangle 18"
+                Padding="14">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <Border WidthRequest="64" HeightRequest="64"
+                        Stroke="#2B2B2B"
+                        BackgroundColor="#0F0F0F"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="0">
+                    <Image Source="{Binding Foto}" Aspect="AspectFill"/>
+                </Border>
+
+                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                    <Label Text="{Binding AdSoyad}" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                    <Label Text="{Binding Uzmanlik}" FontSize="12" TextColor="#BDBDBD"/>
+                    <Label Text="{Binding RolText}" FontSize="12" TextColor="#BDBDBD"/>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- İçerik Kartları -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- İletişim -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="İletişim" FontSize="14" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                        <Label Text="{Binding Telefon}" FontSize="12" TextColor="#BDBDBD"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Çalışma saatleri -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Çalışma Saatleri" FontSize="14" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="6">
+                            <Label Text="Başlangıç" FontSize="12" TextColor="#BDBDBD"/>
+                            <Label Grid.Column="1" Text="Bitiş" FontSize="12" TextColor="#BDBDBD" HorizontalTextAlignment="End"/>
+
+                            <Label Grid.Row="1" Text="{Binding MesaiBaslangicText}" FontSize="14" TextColor="#F2F2F2"/>
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding MesaiBitisText}" FontSize="14" TextColor="#F2F2F2" HorizontalTextAlignment="End"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Çıkış -->
+                <Button Text="Çıkış Yap"
+                        BackgroundColor="#1A1A1A"
+                        TextColor="#F2F2F2"
+                        BorderColor="#2B2B2B"
+                        Clicked="Cikis_Clicked"/>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <altbar:CalisanAltBar Grid.Row="2"/>
+    </Grid>
+</ContentPage>

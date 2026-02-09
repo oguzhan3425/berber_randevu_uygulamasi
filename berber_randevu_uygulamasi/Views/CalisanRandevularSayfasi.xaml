@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
+             xmlns:models="clr-namespace:berber_randevu_uygulamasi.Models"
+             x:Class="berber_randevu_uygulamasi.Views.CalisanRandevularSayfasi"
+             Title="Randevular"
+             BackgroundColor="#0F0F0F">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="12" RowSpacing="12">
+
+        <!-- Üst: Tarih + yenile -->
+        <Grid ColumnDefinitions="*,Auto" Padding="0,6">
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Randevularım" FontSize="18" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                <Label Text="{Binding SeciliTarihText}" FontSize="12" TextColor="#BDBDBD"/>
+            </VerticalStackLayout>
+
+            <Button Grid.Column="1"
+                    Text="🔄"
+                    FontSize="18"
+                    BackgroundColor="Transparent"
+                    TextColor="#F2F2F2"
+                    Clicked="Yenile_Clicked"/>
+        </Grid>
+
+        <!-- Liste -->
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Randevular}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:RandevuKart">
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14"
+                            Margin="0,0,0,10">
+
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Label Text="{Binding SaatText}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"
+                                   VerticalOptions="Center"/>
+
+                            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                                <Label Text="{Binding MusteriAdSoyad}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="#F2F2F2"/>
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding DurumText}"
+                                       FontSize="12"
+                                       TextColor="#BDBDBD"
+                                       HorizontalTextAlignment="End"/>
+
+                                <Label Grid.Row="1"
+                                       Text="{Binding HizmetAdi}"
+                                       FontSize="12"
+                                       TextColor="#BDBDBD"/>
+
+                                <Label Grid.Row="1" Grid.Column="1"
+                                       Text="{Binding ToplamUcret, StringFormat='{0:0} ₺'}"
+                                       FontSize="12"
+                                       TextColor="#BDBDBD"
+                                       HorizontalTextAlignment="End"/>
+
+                                <Button Grid.Row="2"
+                                        Grid.ColumnSpan="2"
+                                        Text="Detay"
+                                        BackgroundColor="#0F0F0F"
+                                        TextColor="#F2F2F2"
+                                        BorderColor="#2B2B2B"
+                                        Clicked="Detay_Clicked"
+                                        CommandParameter="{Binding}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Alt bar -->
+        <altbar:CalisanAltBar Grid.Row="2"/>
+    </Grid>
+</ContentPage>

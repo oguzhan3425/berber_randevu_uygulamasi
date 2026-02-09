@@ -1,3 +1,5 @@
+using berber_randevu_uygulamasi.Models;
+
 namespace berber_randevu_uygulamasi.Views;
 
 public partial class BerberCalisanlarSayfasi : ContentPage
@@ -14,9 +16,9 @@ public partial class BerberCalisanlarSayfasi : ContentPage
     {
         _veri = new List<CalisanKart>
         {
-            new("Mehmet Kaya","Kýdemli","05xx xxx xx xx", true),
-            new("Ali Demir","Kalfa","05xx xxx xx xx", true),
-            new("Kaan Yýldýz","Çýrak","05xx xxx xx xx", false),
+            new CalisanKart { Ad="Mehmet", Soyad="Kaya", Rol="Kýdemli", Telefon="05xx xxx xx xx", Aktif=true },
+            new CalisanKart { Ad="Ali", Soyad="Demir", Rol="Kalfa", Telefon="05xx xxx xx xx", Aktif=true },
+            new CalisanKart { Ad="Kaan", Soyad="Yýldýz", Rol="Çýrak", Telefon="05xx xxx xx xx", Aktif=false },
         };
 
         listeCalisan.ItemsSource = _veri;
@@ -28,7 +30,7 @@ public partial class BerberCalisanlarSayfasi : ContentPage
     async void Duzenle_Clicked(object sender, EventArgs e)
     {
         if (sender is Button b && b.CommandParameter is CalisanKart c)
-            await DisplayAlert("Düzenle", $"{c.AdSoyad} düzenle.", "Tamam");
+            await DisplayAlert("Düzenle", $"{c.Ad} {c.Soyad} düzenle.", "Tamam");
     }
 
     void AktifPasif_Clicked(object sender, EventArgs e)
@@ -36,25 +38,10 @@ public partial class BerberCalisanlarSayfasi : ContentPage
         if (sender is Button b && b.CommandParameter is CalisanKart c)
         {
             c.Aktif = !c.Aktif;
+
+            // Basit yenileme
             listeCalisan.ItemsSource = null;
             listeCalisan.ItemsSource = _veri;
         }
-    }
-
-    public class CalisanKart
-    {
-        public CalisanKart(string adSoyad, string rol, string telefon, bool aktif)
-        {
-            AdSoyad = adSoyad;
-            Rol = rol;
-            Telefon = telefon;
-            Aktif = aktif;
-        }
-
-        public string AdSoyad { get; set; }
-        public string Rol { get; set; }
-        public string Telefon { get; set; }
-        public bool Aktif { get; set; }
-        public string Durum => Aktif ? "Durum: Aktif" : "Durum: Pasif";
     }
 }
