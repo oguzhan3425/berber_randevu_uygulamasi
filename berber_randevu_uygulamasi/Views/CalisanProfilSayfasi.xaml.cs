@@ -1,3 +1,5 @@
+using Npgsql;
+
 namespace berber_randevu_uygulamasi.Views;
 
 public partial class CalisanProfilSayfasi : ContentPage

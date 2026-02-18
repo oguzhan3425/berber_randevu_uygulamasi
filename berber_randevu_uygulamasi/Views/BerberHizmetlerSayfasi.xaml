@@ -1,61 +1,124 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="berber_randevu_uygulamasi.Views.BerberHizmetlerSayfasi"
-    xmlns:models="clr-namespace:berber_randevu_uygulamasi.Models"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:berber_randevu_uygulamasi.Models"
     xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
     Title="Hizmetler"
     BackgroundColor="#0F0F0F">
 
     <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Üst başlık -->
         <Grid Padding="12,10" ColumnDefinitions="*,Auto">
-            <Label Text="Hizmetler &amp; Fiyatlar" FontSize="20" FontAttributes="Bold" TextColor="#F2F2F2"/>
-            <Button Grid.Column="1" Text="＋" Clicked="Ekle_Clicked"/>
+            <Label Text="Hizmetler &amp; Fiyatlar"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="#F2F2F2"/>
+
+            <Button Grid.Column="1"
+                    Text="＋"
+                    Clicked="Ekle_Clicked"/>
         </Grid>
 
+        <!-- Liste -->
         <CollectionView Grid.Row="1" x:Name="listeHizmet">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Hizmet">
-              
-                    <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18"
-                Padding="14" Margin="12,8">
-                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
 
-                            <!-- Sol: Hizmet adı -->
-                            <Label Text="{Binding HizmetAdi}"
-                       FontAttributes="Bold"
-                       FontSize="16"
-                       TextColor="#F2F2F2"/>
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14"
+                            Margin="12,8">
 
-                            <!-- Sağ üst: Fiyat (EN SAĞ) -->
-                            <Label Grid.Column="1"
-                       Text="{Binding Fiyat, StringFormat='{0:0} ₺'}"
-                       FontAttributes="Bold"
-                       FontSize="16"
-                       TextColor="#F2F2F2"
-                       HorizontalTextAlignment="End"/>
+                        <Grid RowDefinitions="Auto,Auto"
+                              ColumnDefinitions="*,Auto"
+                              RowSpacing="10">
 
-                            <!-- Süre -->
-                            <Label Grid.Row="1"
-                       Text="{Binding SureDakika, StringFormat='{0} dk'}"
-                       FontSize="12"
-                       TextColor="#BDBDBD"/>
+                            <!-- SOL: Ad + alt bilgi -->
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="4">
+                                <Label Text="{Binding HizmetAdi}"
+                                       FontAttributes="Bold"
+                                       FontSize="16"
+                                       TextColor="#F2F2F2"/>
 
-                            <!-- Butonlar -->
-                            <VerticalStackLayout Grid.Row="0"
-                                     Grid.RowSpan="2"
-                                     Grid.Column="1"
-                                     Spacing="6"
-                                     HorizontalOptions="End"
-                                     Margin="0,28,0,0">
-                                <Button Text="Düzenle" Clicked="Duzenle_Clicked" CommandParameter="{Binding}"/>
-                                <Button Text="Aktif/Pasif" Clicked="AktifPasif_Clicked" CommandParameter="{Binding}"/>
+                                <HorizontalStackLayout Spacing="10">
+                                    <Label Text="{Binding SureDakika, StringFormat='{0} dk'}"
+                                           FontSize="12"
+                                           TextColor="#BDBDBD"/>
+
+                                    <Label Text="•"
+                                           FontSize="12"
+                                           TextColor="#444"/>
+
+                                    <Label Text="{Binding DurumText}"
+                                           FontSize="12"
+                                           TextColor="#BDBDBD"/>
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
+
+                            <!-- SAĞ: Fiyat büyük -->
+                            <Label Grid.Row="0"
+                                   Grid.Column="1"
+                                   Text="{Binding Fiyat, StringFormat='{0:0} ₺'}"
+                                   FontAttributes="Bold"
+                                   FontSize="22"
+                                   TextColor="#F2F2F2"
+                                   VerticalOptions="Start"
+                                   HorizontalTextAlignment="End"/>
+
+                            <!-- ALT: Aksiyon chip'ler -->
+                            <Grid Grid.Row="1"
+                                  Grid.ColumnSpan="2"
+                                  ColumnDefinitions="*,*"
+                                  ColumnSpacing="10">
+
+                                <Border BackgroundColor="#232323"
+                                        Stroke="#2B2B2B"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 14"
+                                        Padding="10">
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Tapped="Duzenle_Clicked"
+                                            CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+
+                                    <Label Text="Düzenle"
+                                           HorizontalOptions="Center"
+                                           TextColor="#F2F2F2"
+                                           FontAttributes="Bold"/>
+                                </Border>
+
+                                <Border Grid.Column="1"
+                                        BackgroundColor="#232323"
+                                        Stroke="#2B2B2B"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 14"
+                                        Padding="10">
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Tapped="AktifPasif_Clicked"
+                                            CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+
+                                    <Label Text="Aktif / Pasif"
+                                           HorizontalOptions="Center"
+                                           TextColor="#F2F2F2"
+                                           FontAttributes="Bold"/>
+                                </Border>
+
+                            </Grid>
 
                         </Grid>
                     </Border>
                 </DataTemplate>
+
             </CollectionView.ItemTemplate>
         </CollectionView>
 

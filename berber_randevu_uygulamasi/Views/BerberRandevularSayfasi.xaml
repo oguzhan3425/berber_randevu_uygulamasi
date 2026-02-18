@@ -16,11 +16,66 @@
             <Button Grid.Column="1" Text="Yenile" Clicked="Yenile_Clicked"/>
         </Grid>
 
-        <!-- Segment -->
-        <Grid Grid.Row="1" Padding="12,0" ColumnDefinitions="*,*">
-            <Button x:Name="btnGelecek" Text="Gelecek" Clicked="Gelecek_Clicked"/>
-            <Button x:Name="btnGecmis" Grid.Column="1" Text="Geçmiş" Clicked="Gecmis_Clicked"/>
-        </Grid>
+        <!-- iPhone tarzı dikey segment bar -->
+        <Border Grid.Row="1"
+                Margin="12,0"
+                Padding="6"
+                BackgroundColor="#1A1A1A"
+                Stroke="#2B2B2B"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 18">
+
+            <Border.GestureRecognizers>
+                <!-- Yukarı/Aşağı kaydırma ile geçiş -->
+                <PanGestureRecognizer PanUpdated="Segment_PanUpdated"/>
+            </Border.GestureRecognizers>
+
+            <Grid RowDefinitions="Auto,Auto" RowSpacing="6">
+
+                <!-- GELECEK (üst) -->
+                <Border x:Name="segGelecek"
+                        Grid.Row="0"
+                        Padding="12,10"
+                        StrokeThickness="0"
+                        BackgroundColor="#232323"
+                        StrokeShape="RoundRectangle 14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="Gelecek_Tapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <Label Text="Gelecek"
+                               FontAttributes="Bold"
+                               TextColor="#F2F2F2"/>
+                        <Label Grid.Column="1"
+                               Text="↑"
+                               TextColor="#BDBDBD"/>
+                    </Grid>
+                </Border>
+
+                <!-- GEÇMİŞ (alt) -->
+                <Border x:Name="segGecmis"
+                        Grid.Row="1"
+                        Padding="12,10"
+                        StrokeThickness="0"
+                        BackgroundColor="#1A1A1A"
+                        StrokeShape="RoundRectangle 14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="Gecmis_Tapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <Label Text="Geçmiş"
+                               FontAttributes="Bold"
+                               TextColor="#F2F2F2"/>
+                        <Label Grid.Column="1"
+                               Text="↓"
+                               TextColor="#BDBDBD"/>
+                    </Grid>
+                </Border>
+
+            </Grid>
+        </Border>
 
         <!-- Listeler -->
         <Grid Grid.Row="2">
@@ -37,57 +92,43 @@
 
                             <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
 
-                                <!-- SOL: Saat -->
                                 <Label Grid.Column="0"
-                                  Text="{Binding SaatText}"
-                                  FontSize="22"
-                                  FontAttributes="Bold"
-                                  TextColor="#F2F2F2"
-                                  VerticalOptions="Center"
-                                  Margin="0,0,12,0"/>
+                                       Text="{Binding SaatText}"
+                                       FontSize="22"
+                                       FontAttributes="Bold"
+                                       TextColor="#F2F2F2"
+                                       VerticalOptions="Center"
+                                       Margin="0,0,12,0"/>
 
-                                <!-- ORTA: Foto + Bilgiler -->
                                 <Grid Grid.Column="1" ColumnDefinitions="Auto,*" RowDefinitions="Auto">
-                                    <!-- Foto -->
                                     <Border BackgroundColor="#232323"
                                             StrokeShape="RoundRectangle 14"
                                             WidthRequest="80"
                                             HeightRequest="80"
                                             VerticalOptions="Start">
-                                        <Image Source="{Binding MusteriFoto}"
-                                               Aspect="AspectFill"/>
+                                        <Image Source="{Binding MusteriFoto}" Aspect="AspectFill"/>
                                     </Border>
 
-                                    <!-- Bilgiler -->
                                     <VerticalStackLayout Grid.Column="1" Margin="10,0,0,0" Spacing="2">
                                         <Label Text="{Binding MusteriAdSoyad}"
-                                          FontAttributes="Bold"
-                                          TextColor="#F2F2F2"/>
-
+                                               FontAttributes="Bold"
+                                               TextColor="#F2F2F2"/>
                                         <Label Text="{Binding HizmetAdi}"
-                                                     FontSize="12"
-                                                     TextColor="#BDBDBD"/>
-
+                                               FontSize="12"
+                                               TextColor="#BDBDBD"/>
                                         <Label Text="{Binding TarihText}"
                                                FontSize="12"
                                                TextColor="#BDBDBD"/>
                                     </VerticalStackLayout>
                                 </Grid>
 
-                                <!-- SAĞ: Fiyat -->
                                 <Label Grid.Column="2"
-                                  Text="{Binding ToplamUcret, StringFormat='{0:0} ₺'}"
-                                  FontAttributes="Bold"
-                                  FontSize="28"
-                                  TextColor="#F2F2F2"
-                                  HorizontalTextAlignment="End"
-                                  VerticalOptions="Center"/>
-
-                                <!-- ALT: Butonlar -->
-                                <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,12,0,0">
-                                    <Button Text="✔ Geldi" Clicked="Geldi_Clicked" CommandParameter="{Binding}"/>
-                                    <Button Grid.Column="1" Text="❌ Gelmedi" Clicked="Gelmedi_Clicked" CommandParameter="{Binding}"/>
-                                </Grid>
+                                       Text="{Binding ToplamUcret, StringFormat='{0:0} ₺'}"
+                                       FontAttributes="Bold"
+                                       FontSize="28"
+                                       TextColor="#F2F2F2"
+                                       HorizontalTextAlignment="End"
+                                       VerticalOptions="Center"/>
 
                             </Grid>
                         </Border>

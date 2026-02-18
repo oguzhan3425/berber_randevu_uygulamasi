@@ -8,53 +8,195 @@
     BackgroundColor="#0F0F0F">
 
     <Grid RowDefinitions="*,Auto">
+
+        <!-- İÇERİK -->
         <ScrollView Grid.Row="0">
-            <VerticalStackLayout Padding="12,10" Spacing="12">
+            <VerticalStackLayout Padding="12,14" Spacing="14">
 
-                <Label Text="Ayarlar" FontSize="20" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                <!-- Başlık (istersen kaldırabilirsin, üstte Title zaten var) -->
+                <Label Text="Ayarlar"
+                       FontSize="26"
+                       FontAttributes="Bold"
+                       TextColor="#F2F2F2"
+                       HorizontalOptions="Center"
+                       Margin="0,6,0,10"/>
 
-                <!-- Çalışma Saatleri (Örnek: Pazartesi) -->
-                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
-                    <VerticalStackLayout Spacing="10">
-                        <Label Text="Çalışma Saatleri (Pazartesi)" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                <!-- ÜST: 2 FOTO -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
 
-                        <Grid ColumnDefinitions="*,Auto">
-                            <Label Text="Pazartesi Açık" TextColor="#F2F2F2"/>
-                            <Switch Grid.Column="1" x:Name="swPzt" IsToggled="True"/>
+                    <!-- DÜKKAN FOTO -->
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Dükkan Fotoğrafı"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="#DADADA"
+                                   HorizontalOptions="Center"/>
+
+                            <Border StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 18"
+                                    HeightRequest="160"
+                                    BackgroundColor="#232323">
+
+                                <Image x:Name="imgDukkan"
+                                       Aspect="AspectFill"
+                                       Source="default_shop.png"/>
+                            </Border>
+
+                            <Button Text="Değiştir"
+                                    Clicked="DukkanFotoDegistir_Clicked"
+                                    BackgroundColor="#232323"
+                                    TextColor="#F2F2F2"
+                                    CornerRadius="14"
+                                    HeightRequest="44"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- SAHİP FOTO -->
+                    <Border Grid.Column="1"
+                            BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Berber Sahibi"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="#DADADA"
+                                   HorizontalOptions="Center"/>
+
+                            <Border StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 18"
+                                    HeightRequest="160"
+                                    BackgroundColor="#232323">
+
+                                <Image x:Name="imgSahip"
+                                       Aspect="AspectFill"
+                                       Source="default_user.png"/>
+                            </Border>
+
+                            <Button Text="Değiştir"
+                                    Clicked="SahipFotoDegistir_Clicked"
+                                    BackgroundColor="#232323"
+                                    TextColor="#F2F2F2"
+                                    CornerRadius="14"
+                                    HeightRequest="44"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                </Grid>
+
+                <!-- MENÜ -->
+                <VerticalStackLayout Spacing="10" Margin="0,6,0,0">
+
+                    <!-- Kişisel Bilgiler -->
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="👤" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="Kişisel Bilgiler"
+                                   TextColor="#F2F2F2"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   Margin="10,0,0,0"/>
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   TextColor="#BDBDBD"
+                                   FontSize="22"
+                                   VerticalOptions="Center"/>
                         </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="KisiselBilgiler_Tapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
 
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <VerticalStackLayout>
-                                <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
-                                <TimePicker x:Name="tpAc" Time="10:00:00"/>
-                            </VerticalStackLayout>
-
-                            <VerticalStackLayout Grid.Column="1">
-                                <Label Text="Kapanış" FontSize="12" TextColor="#BDBDBD"/>
-                                <TimePicker x:Name="tpKapa" Time="20:00:00"/>
-                            </VerticalStackLayout>
+                    <!-- Çalışma Saatleri -->
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="🕒" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="Çalışma Saatleri"
+                                   TextColor="#F2F2F2"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   Margin="10,0,0,0"/>
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   TextColor="#BDBDBD"
+                                   FontSize="22"
+                                   VerticalOptions="Center"/>
                         </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="CalismaSaatleri_Tapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
 
-                        <Label Text="Slot kapasitesi (aynı saatte kaç kişi)" FontSize="12" TextColor="#BDBDBD"/>
-                        <Entry x:Name="entryKapasite" Text="1" Keyboard="Numeric"/>
-                    </VerticalStackLayout>
-                </Border>
+                   
 
-                <!-- İşletme Bilgileri -->
-                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
-                    <VerticalStackLayout Spacing="10">
-                        <Label Text="İşletme Bilgileri" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
-                        <Entry x:Name="entryDukkanAdi" Placeholder="Dükkan adı" Text="Oğuzhan Barber"/>
-                        <Entry x:Name="entryAdres" Placeholder="Adres" Text="İstanbul"/>
-                        <Editor x:Name="editorAciklama" Placeholder="Kısa açıklama" AutoSize="TextChanges" />
-                    </VerticalStackLayout>
-                </Border>
+                    <!-- Şifreyi Değiştir -->
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="🔒" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="Şifreyi Değiştir"
+                                   TextColor="#F2F2F2"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   Margin="10,0,0,0"/>
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   TextColor="#BDBDBD"
+                                   FontSize="22"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="SifreDegistir_Tapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
 
-                <Button Text="Kaydet" Clicked="Kaydet_Clicked"/>
+                    <!-- Çıkış -->
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="⏻" FontSize="20" VerticalOptions="Center" TextColor="#FF5A5A"/>
+                            <Label Grid.Column="1"
+                                   Text="Çıkış Yap"
+                                   TextColor="#FF5A5A"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   Margin="10,0,0,0"/>
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="CikisYap_Tapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                </VerticalStackLayout>
+
+                <!-- Alt barda kaybolmasın diye küçük boşluk -->
+                <BoxView HeightRequest="10" Opacity="0"/>
 
             </VerticalStackLayout>
         </ScrollView>
 
+        <!-- ALT BAR (sabit) -->
         <altbar:BerberAltBar Grid.Row="1"/>
+
     </Grid>
 </ContentPage>

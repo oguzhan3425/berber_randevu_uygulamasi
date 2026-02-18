@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Name="Sayfa"
+    x:Class="berber_randevu_uygulamasi.Views.RandevuOlusturSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Randevu Oluştur"
+    BackgroundColor="#0F0F0F">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- ÜST BAR -->
+        <Grid Padding="12,10" ColumnDefinitions="Auto,*">
+            <ImageButton Source="back.png"
+                         WidthRequest="28"
+                         HeightRequest="28"
+                         BackgroundColor="Transparent"
+                         Clicked="Geri_Clicked" />
+            <Label Grid.Column="1"
+                   Text="Randevu Oluştur"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="#F2F2F2"
+                   VerticalOptions="Center" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="12" Spacing="14">
+
+                <!-- ÇALIŞAN KARTI -->
+                <Border Stroke="#262626"
+                        StrokeThickness="1"
+                        BackgroundColor="#151515"
+                        Padding="14">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="18" />
+                    </Border.StrokeShape>
+
+                    <Grid ColumnDefinitions="70,*" ColumnSpacing="14" VerticalOptions="Center">
+                        <!-- Foto -->
+                        <Border HeightRequest="60"
+                                WidthRequest="60"
+                                BackgroundColor="#222222"
+                                StrokeThickness="0"
+                                VerticalOptions="Center">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="30" />
+                            </Border.StrokeShape>
+                            <Image Source="{Binding CalisanFoto}" Aspect="AspectFill"/>
+                        </Border>
+
+                        <!-- İsim -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="{Binding CalisanAdSoyad}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+                            <Label Text="Berber / Stylist"
+                                   FontSize="13"
+                                   TextColor="#BDBDBD"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- BOŞ SAATLER -->
+                <Label Text="Boş Saatler"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#F2F2F2"
+                       Margin="2,6,0,0"/>
+
+                <CollectionView ItemsSource="{Binding Saatler}"
+                                SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Span="3" Orientation="Vertical" />
+                    </CollectionView.ItemsLayout>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="12,10"
+                                    Margin="4"
+                                    BackgroundColor="{Binding KartRenk}"
+                                    Stroke="#262626"
+                                    StrokeThickness="1">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="16"/>
+                                </Border.StrokeShape>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding BindingContext.SaatSecCommand, Source={x:Reference Name=Sayfa}}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <Label Text="{Binding Saat}"
+                                       HorizontalOptions="Center"
+                                       TextColor="{Binding YaziRenk}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"/>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- HİZMET SEÇİMİ -->
+                <Label Text="Hizmet Seçimi"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#F2F2F2"
+                       Margin="2,6,0,0"/>
+
+                <CollectionView ItemsSource="{Binding Hizmetler}"
+                                SelectionMode="None">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,6"
+                                    Padding="12"
+                                    BackgroundColor="{Binding KartRenk}"
+                                    Stroke="#262626"
+                                    StrokeThickness="1">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="18"/>
+                                </Border.StrokeShape>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding BindingContext.HizmetToggleCommand, Source={x:Reference Name=Sayfa}}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                    <!-- checkbox -->
+                                    <Border HeightRequest="22" WidthRequest="22" StrokeThickness="1" Stroke="#3A3A3A" BackgroundColor="#111111">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="6"/>
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding Check}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center"
+                                               TextColor="#F2F2F2"
+                                               FontSize="14"
+                                               FontAttributes="Bold"/>
+                                    </Border>
+
+                                    <!-- ad -->
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Ad}"
+                                           FontSize="15"
+                                           TextColor="#F2F2F2"
+                                           VerticalOptions="Center" />
+
+                                    <!-- fiyat -->
+                                    <Label Grid.Column="2"
+                                           Text="{Binding FiyatText}"
+                                           FontSize="15"
+                                           TextColor="#BDBDBD"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- BUTON -->
+        <Border Grid.Row="2"
+                Padding="12"
+                BackgroundColor="#0F0F0F">
+            <Button Text="Randevu Oluştur"
+                    CornerRadius="18"
+                    BackgroundColor="#1B1B1B"
+                    TextColor="#F2F2F2"
+                    HeightRequest="52"
+                    Clicked="RandevuOlustur_Clicked"/>
+        </Border>
+
+    </Grid>
+</ContentPage>

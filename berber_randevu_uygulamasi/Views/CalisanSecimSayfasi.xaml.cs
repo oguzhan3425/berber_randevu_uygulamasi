@@ -1,67 +1,73 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Maui.Controls;
+using Npgsql;
 using berber_randevu_uygulamasi.Models;
-using Microsoft.Data.SqlClient;
+using berber_randevu_uygulamasi.Services;
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class CalisanSecimSayfasi : ContentPage
     {
-        private readonly string connectionString =
-            "Data Source=localhost\\SQLEXPRESS;Initial Catalog=BerberDB;Integrated Security=True;TrustServerCertificate=True;";
-
-        private Berber _berber;
+        private readonly Berber _berber;
 
         public CalisanSecimSayfasi(Berber berber)
         {
             InitializeComponent();
             _berber = berber;
-            CalisanlariYukle();
+            _ = CalisanlariYukleAsync();
         }
 
-        // --- ÇALIÞANLARI YÜKLE ---
-        private async void CalisanlariYukle()
+        private async System.Threading.Tasks.Task CalisanlariYukleAsync()
         {
             List<CalisanKart> liste = new();
 
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+                await conn.OpenAsync();
+
+                // ? Calisanlar tablosu: CalisanID, KullaniciID, BerberID
+                // ? Ad/Soyad kullanýcý tablosundan alýnýr
+                string sql = @"
+                    SELECT
+                        c.""CalisanID"",
+                        c.""BerberID"",
+                        k.""Ad"",
+                        k.""Soyad"",
+                        k.""ProfilFoto""
+                    FROM ""calisanlar"" c
+                    JOIN kullanici k ON k.""ID"" = c.""KullaniciID""
+                    WHERE c.""BerberID"" = @bid
+                    ORDER BY k.""Ad"", k.""Soyad"";";
+
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@bid", _berber.BerberID);
+
+                await using var dr = await cmd.ExecuteReaderAsync();
+
+                while (await dr.ReadAsync())
                 {
-                    await conn.OpenAsync();
+                    int calisanId = dr.GetInt32(0);
+                    int berberId = dr.GetInt32(1);
+                    string ad = dr.IsDBNull(2) ? "" : dr.GetString(2);
+                    string soyad = dr.IsDBNull(3) ? "" : dr.GetString(3);
+                    string foto = dr.IsDBNull(4) ? "" : dr.GetString(4);
 
-                    string sql = @"
-                    SELECT 
-                        c.CalisanID,
-                        c.KullaniciID,
-                        c.BerberID,
-                        c.Uzmanlik,
-                        k.Ad,
-                        k.Soyad,
-                        'default_berber.png' AS Foto
-                    FROM CalisanKart c
-                    INNER JOIN Kullanici k ON c.KullaniciID = k.ID
-                    WHERE c.BerberID = @bid";
-
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    liste.Add(new CalisanKart
                     {
-                        cmd.Parameters.AddWithValue("@bid", _berber.BerberID);
+                        CalisanID = calisanId,
+                        BerberID = berberId,
+                        Ad = ad,
+                        Soyad = soyad,
 
-                        using (SqlDataReader rd = await cmd.ExecuteReaderAsync())
-                        {
-                            while (await rd.ReadAsync())
-                            {
-                                liste.Add(new CalisanKart
-                                {
-                                    CalisanID = rd.GetInt32(0),
-                                    KullaniciID = rd.GetInt32(1),
-                                    BerberID = rd.GetInt32(2),
-                                    Uzmanlik = rd.IsDBNull(3) ? "" : rd.GetString(3),
-                                    Ad = rd.GetString(4),
-                                    Soyad = rd.GetString(5),
-                                    Foto = rd.GetString(6)
-                                });
-                            }
-                        }
-                    }
+                        // Senin DB’de "DeneyimYili / Uzmanlik" yok.
+                        // Þimdilik boþ býrakýyoruz. Ýstersen tabloya ekleriz.
+                        Uzmanlik = "",
+
+                        Foto = string.IsNullOrWhiteSpace(foto) ? "default_berber.png" : foto
+                    });
                 }
 
                 CalisanCollection.ItemsSource = liste;
@@ -72,18 +78,15 @@ namespace berber_randevu_uygulamasi.Views
             }
         }
 
-        // --- ÇALIÞAN SEÇÝMÝ ---
         private async void CalisanCollection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (e.CurrentSelection.FirstOrDefault() is CalisanKart secilen)
             {
-                // Þimdilik çalýþan bilgisi gösterelim
-                await DisplayAlert("Seçilen Çalýþan",
-                    $"{secilen.Ad} {secilen.Soyad}\nUzmanlýk: {secilen.Uzmanlik}",
-                    "Tamam");
+                CalisanCollection.SelectedItem = null;
 
-                // Bir sonraki sayfaya geçeceðiz:
-                // await Navigation.PushAsync(new HizmetSecimSayfasi(secilen));
+                
+
+                await Navigation.PushAsync(new RandevuOlusturSayfasi(secilen));
             }
         }
     }

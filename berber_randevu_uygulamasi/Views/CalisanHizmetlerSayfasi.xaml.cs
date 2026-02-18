@@ -1,3 +1,4 @@
+using Npgsql;
 using System.Collections.ObjectModel;
 using berber_randevu_uygulamasi.Models;
 

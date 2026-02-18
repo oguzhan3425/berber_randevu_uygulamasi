@@ -60,9 +60,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+		<PackageReference Include="Npgsql" Version="10.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -81,8 +81,29 @@
 	  <MauiXaml Update="Views\AltBarlar\BerberAltBar.xaml">
 	    <Generator></Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\AltBarlar\BerberCalismaSaatleriSayfasi.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AltBarlar\BerberKisiselBilgilerSayfasi.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\AltBarlar\CalisanAltBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AltBarlar\CalisanEkleModalSayfasi.xaml">
+	    <Generator></Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AltBarlar\HizmetEkleModalSayfasi.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AltBarlar\ProfilFotoDegistirSayfasi.xaml">
+	    <Generator></Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AltBarlar\SifreDegistirSayfasi.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AltBarlar\TelefonDegistirSayfasi.xaml">
+	    <Generator></Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\CalisanHizmetlerSayfasi.xaml">
 	    <Generator>MSBuild:Compile</Generator>
@@ -129,6 +150,12 @@
 	  <MauiXaml Update="Views\RandevuAlSayfasi.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\RandevuOlusturSayfasi.xaml">
+	    <Generator></Generator>
+	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.0" />
 	</ItemGroup>
 
 </Project>

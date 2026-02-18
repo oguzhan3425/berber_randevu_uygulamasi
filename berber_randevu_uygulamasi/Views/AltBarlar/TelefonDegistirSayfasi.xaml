@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="berber_randevu_uygulamasi.Views.AltBarlar.TelefonDegistirSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Telefon Numarası"
+    BackgroundColor="#0F0F0F">
+
+    <VerticalStackLayout Padding="20" Spacing="14">
+        <Label Text="Yeni Telefon Numarası" TextColor="#F2F2F2" FontSize="14"/>
+
+        <Entry x:Name="TelefonEntry"
+               Placeholder="05xx xxx xx xx"
+               Keyboard="Telephone"
+               BackgroundColor="#1A1A1A"
+               TextColor="White"
+               PlaceholderColor="#777"
+               HeightRequest="50"/>
+
+        <Button Text="Telefonu Güncelle"
+                BackgroundColor="#FF8A00"
+                TextColor="White"
+                HeightRequest="55"
+                CornerRadius="14"
+                Margin="0,18,0,0"
+                Clicked="TelefonGuncelle_Clicked"/>
+    </VerticalStackLayout>
+</ContentPage>

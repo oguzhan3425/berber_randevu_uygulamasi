@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using berber_randevu_uygulamasi.Models;
 
 namespace berber_randevu_uygulamasi.Services
 {
     public class VeritabaniHizmeti
     {
-        private readonly string _connectionString =
-            "Data Source=Oğuzhan\\SQLEXPRESS;Initial Catalog=BerberDB;Integrated Security=True;TrustServerCertificate=True;";
+        // SQL Server connection string'i artık kullanılmıyor.
+        // Bağlantı DbConfig.ConnectionString üzerinden PostgreSQL'e yapılacak.
 
         // -----------------------------
         //  KULLANICI İŞLEMLERİ
@@ -19,21 +19,21 @@ namespace berber_randevu_uygulamasi.Services
         {
             try
             {
-                using SqlConnection baglanti = new SqlConnection(_connectionString);
-                await baglanti.OpenAsync();
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+                await conn.OpenAsync();
 
-                string sorgu = @"INSERT INTO Kullanici (Ad, Soyad, KullaniciAdi, Eposta, Sifre)
-                                 VALUES (@Ad, @Soyad, @KullaniciAdi, @Eposta, @Sifre)";
+                string sql = @"INSERT INTO Kullanici (Ad, Soyad, KullaniciAdi, Eposta, Sifre)
+                               VALUES (@Ad, @Soyad, @KullaniciAdi, @Eposta, @Sifre);";
 
-                using SqlCommand komut = new SqlCommand(sorgu, baglanti);
-                komut.Parameters.AddWithValue("@Ad", yeniKullanici.Ad);
-                komut.Parameters.AddWithValue("@Soyad", yeniKullanici.Soyad);
-                komut.Parameters.AddWithValue("@KullaniciAdi", yeniKullanici.KullaniciAdi);
-                komut.Parameters.AddWithValue("@Eposta", yeniKullanici.Eposta);
-                komut.Parameters.AddWithValue("@Sifre", yeniKullanici.Sifre);
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Ad", yeniKullanici.Ad ?? "");
+                cmd.Parameters.AddWithValue("@Soyad", yeniKullanici.Soyad ?? "");
+                cmd.Parameters.AddWithValue("@KullaniciAdi", yeniKullanici.KullaniciAdi ?? "");
+                cmd.Parameters.AddWithValue("@Eposta", yeniKullanici.Eposta ?? "");
+                cmd.Parameters.AddWithValue("@Sifre", yeniKullanici.Sifre ?? "");
 
-                await komut.ExecuteNonQueryAsync();
-                return true;
+                int etkilenen = await cmd.ExecuteNonQueryAsync();
+                return etkilenen > 0;
             }
             catch (Exception ex)
             {
@@ -42,27 +42,28 @@ namespace berber_randevu_uygulamasi.Services
             }
         }
 
-        // Örnek: ID ile kullanıcı çekmek istersen
         public async Task<Kullanici?> KullaniciGetirAsync(int kullaniciId)
         {
             try
             {
-                using SqlConnection baglanti = new SqlConnection(_connectionString);
-                await baglanti.OpenAsync();
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+                await conn.OpenAsync();
 
-                string sorgu = @"SELECT ID, Ad, Soyad, KullaniciAdi, Eposta, Sifre, KullaniciTipi
-                                 FROM Kullanici WHERE ID = @id";
+                string sql = @"SELECT ID, Ad, Soyad, KullaniciAdi, Eposta, Sifre, KullaniciTipi
+                               FROM Kullanici
+                               WHERE ID = @id;";
 
-                using SqlCommand komut = new SqlCommand(sorgu, baglanti);
-                komut.Parameters.AddWithValue("@id", kullaniciId);
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", kullaniciId);
 
-                using SqlDataReader dr = await komut.ExecuteReaderAsync();
+                await using var dr = await cmd.ExecuteReaderAsync();
+
                 if (await dr.ReadAsync())
                 {
                     return new Kullanici
                     {
                         ID = dr.GetInt32(0),
-                        Ad = dr.GetString(1),
+                        Ad = dr.IsDBNull(1) ? "" : dr.GetString(1),
                         Soyad = dr.IsDBNull(2) ? "" : dr.GetString(2),
                         KullaniciAdi = dr.IsDBNull(3) ? "" : dr.GetString(3),
                         Eposta = dr.IsDBNull(4) ? "" : dr.GetString(4),
@@ -90,21 +91,21 @@ namespace berber_randevu_uygulamasi.Services
 
             try
             {
-                using SqlConnection conn = new SqlConnection(_connectionString);
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
                 await conn.OpenAsync();
 
-                string query = @"SELECT BerberID, BerberAdi, Adres, Telefon, ResimYolu, Puan, AcilisSaati, KapanisSaati
-                                 FROM Berberler";
+                string sql = @"SELECT BerberID, BerberAdi, Adres, Telefon, ResimYolu, Puan, AcilisSaati, KapanisSaati
+                               FROM Berberler;";
 
-                using SqlCommand cmd = new SqlCommand(query, conn);
-                using SqlDataReader dr = await cmd.ExecuteReaderAsync();
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                await using var dr = await cmd.ExecuteReaderAsync();
 
                 while (await dr.ReadAsync())
                 {
                     Berber b = new Berber
                     {
                         BerberID = dr.GetInt32(0),
-                        BerberAdi = dr.GetString(1),
+                        BerberAdi = dr.IsDBNull(1) ? "" : dr.GetString(1),
                         Adres = dr.IsDBNull(2) ? "" : dr.GetString(2),
                         Telefon = dr.IsDBNull(3) ? "" : dr.GetString(3),
                         ResimYolu = dr.IsDBNull(4) ? "" : dr.GetString(4),
@@ -134,26 +135,30 @@ namespace berber_randevu_uygulamasi.Services
 
             try
             {
-                using SqlConnection conn = new SqlConnection(_connectionString);
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
                 await conn.OpenAsync();
 
-                string query = @"SELECT CalisanID, BerberID, AdSoyad, DeneyimYili, ResimYolu
-                                 FROM Calisanlar
-                                 WHERE BerberID = @bid";
+                string sql = @"SELECT CalisanID, BerberID, AdSoyad, DeneyimYili, ResimYolu
+                               FROM Calisanlar
+                               WHERE BerberID = @bid;";
 
-                using SqlCommand cmd = new SqlCommand(query, conn);
+                await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@bid", berberId);
 
-                using SqlDataReader dr = await cmd.ExecuteReaderAsync();
+                await using var dr = await cmd.ExecuteReaderAsync();
 
                 while (await dr.ReadAsync())
                 {
+                    // Not: AdSoyad tek alan ise Ad/Soyad ayrıştırmak gerekiyor.
+                    // Şimdilik Ad alanına yazdım, Soyad'ı boş bıraktım.
+                    var adSoyad = dr.IsDBNull(2) ? "" : dr.GetString(2);
+
                     CalisanKart c = new CalisanKart
                     {
                         CalisanID = dr.GetInt32(0),
                         BerberID = dr.GetInt32(1),
-                        Ad = dr.GetString(2),
-                        Soyad = dr.GetString(2),
+                        Ad = adSoyad,
+                        Soyad = "",
                         Uzmanlik = dr.IsDBNull(3) ? "" : dr.GetString(3),
                         Foto = dr.IsDBNull(4) ? "" : dr.GetString(4)
                     };
@@ -179,17 +184,17 @@ namespace berber_randevu_uygulamasi.Services
 
             try
             {
-                using SqlConnection conn = new SqlConnection(_connectionString);
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
                 await conn.OpenAsync();
 
-                string query = @"SELECT HizmetID, CalisanID, HizmetAdi, Fiyat, SureDakika
-                                 FROM Hizmetler
-                                 WHERE CalisanID = @cid";
+                string sql = @"SELECT HizmetID, CalisanID, HizmetAdi, Fiyat, SureDakika
+                               FROM Hizmetler
+                               WHERE CalisanID = @cid;";
 
-                using SqlCommand cmd = new SqlCommand(query, conn);
+                await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@cid", calisanId);
 
-                using SqlDataReader dr = await cmd.ExecuteReaderAsync();
+                await using var dr = await cmd.ExecuteReaderAsync();
 
                 while (await dr.ReadAsync())
                 {
@@ -197,9 +202,9 @@ namespace berber_randevu_uygulamasi.Services
                     {
                         HizmetID = dr.GetInt32(0),
                         CalisanID = dr.GetInt32(1),
-                        HizmetAdi = dr.GetString(2),
-                        Fiyat = dr.GetDecimal(3),
-                        SureDakika = dr.GetInt32(4)
+                        HizmetAdi = dr.IsDBNull(2) ? "" : dr.GetString(2),
+                        Fiyat = dr.IsDBNull(3) ? 0 : dr.GetDecimal(3),
+                        SureDakika = dr.IsDBNull(4) ? 0 : dr.GetInt32(4)
                     };
 
                     liste.Add(h);
@@ -221,17 +226,17 @@ namespace berber_randevu_uygulamasi.Services
         {
             try
             {
-                using SqlConnection conn = new SqlConnection(_connectionString);
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
                 await conn.OpenAsync();
 
-                string query = @"INSERT INTO Randevular
-                                 (KullaniciID, BerberID, CalisanID, HizmetID,
-                                  RandevuTarihi, RandevuSaati, SureDakika, ToplamUcret)
-                                 VALUES
-                                 (@kullanici, @berber, @calisan, @hizmet,
-                                  @tarih, @saat, @sure, @ucret)";
+                string sql = @"INSERT INTO Randevular
+                               (KullaniciID, BerberID, CalisanID, HizmetID,
+                                RandevuTarihi, RandevuSaati, SureDakika, ToplamUcret)
+                               VALUES
+                               (@kullanici, @berber, @calisan, @hizmet,
+                                @tarih, @saat, @sure, @ucret);";
 
-                using SqlCommand cmd = new SqlCommand(query, conn);
+                await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@kullanici", r.KullaniciID);
                 cmd.Parameters.AddWithValue("@berber", r.BerberID);
                 cmd.Parameters.AddWithValue("@calisan", r.CalisanID);

@@ -1,7 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="berber_randevu_uygulamasi.Views.AnaSayfa"
-             BackgroundColor="#F6EEDD">
+             BackgroundColor="#0F0F0F">
 
     <Grid RowDefinitions="Auto,*,Auto">
 
@@ -13,24 +13,39 @@
 
                 <!-- Profil Foto (SOLDA) -->
                 <Border Grid.Column="0"
-            StrokeThickness="0"
-            BackgroundColor="Transparent"
-            HeightRequest="70"
-            WidthRequest="70"
-            StrokeShape="RoundRectangle 100"
-            VerticalOptions="Center">
-                    <Image Source="pp.png" Aspect="AspectFill"/>
+                        StrokeThickness="0"
+                        BackgroundColor="Transparent"
+                        HeightRequest="70"
+                        WidthRequest="70"
+                        StrokeShape="RoundRectangle 100"
+                        VerticalOptions="Center">
+                    <Image 
+                        x:Name="imgProfil"
+                        Source="pp.png" 
+                        Aspect="AspectFill"/>
                 </Border>
 
                 <!-- Hoşgeldin yazıları (SAĞDA) -->
-                <VerticalStackLayout Grid.Column="1" Padding="15,0,0,0">
-                    <Label Text="Hoş geldin,"
-               FontSize="32"
-               TextColor="Black"/>
-                    <Label Text="Oğuzhan 👋"
-               FontSize="32"
-               FontAttributes="Bold"
-               TextColor="Black"/>
+                <VerticalStackLayout 
+                    Grid.Column="1" 
+                    Padding="15,0,0,0">
+                    <Label 
+                        Text="Hoş geldin,"
+                        FontSize="32"
+                        TextColor="#B5B5B5"/>
+                    <HorizontalStackLayout Spacing="6">
+                        <Label
+                        x:Name="lblAdSoyad"
+                        FontSize="32"
+                        FontAttributes="Bold"
+                        TextColor="#F2F2F2"/>
+
+                        <Image Source="hi.png"
+                           HeightRequest="26"
+                           WidthRequest="26"
+                           VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
                 </VerticalStackLayout>
 
             </Grid>
@@ -60,9 +75,9 @@
             <Label Text="Bugünkü Randevular"
                    FontSize="24"
                    Margin="0,10,0,0"
-                   TextColor="Black"/>
+                   TextColor="#F2F2F2"/>
 
-            <Border BackgroundColor="#E8D8BE"
+            <Border BackgroundColor="#151515"
                     StrokeThickness="0"
                     Padding="20"
                     StrokeShape="RoundRectangle 20">
@@ -71,11 +86,11 @@
                     <Label Text="Ahmet Yılmaz – 14:30"
                            FontSize="22"
                            FontAttributes="Bold"
-                           TextColor="Black"/>
+                           TextColor="#F2F2F2"/>
 
                     <Label Text="Saç + Sakal"
                            FontSize="18"
-                           TextColor="Black"/>
+                           TextColor="#F2F2F2"/>
                 </VerticalStackLayout>
 
             </Border>
@@ -85,7 +100,7 @@
 
         <!-- ALT BAR -->
         <Grid Grid.Row="2"
-              BackgroundColor="#3A2A1A"
+              BackgroundColor="#151515"
               HeightRequest="65"
               ColumnDefinitions="*,*,*">
 
@@ -111,7 +126,7 @@
 
             <!-- Profil -->
             <ImageButton Grid.Column="2"
-                         Source="user.png"
+                         Source="profil.png"
                          BackgroundColor="Transparent"
                          HeightRequest="35"
                          WidthRequest="35"

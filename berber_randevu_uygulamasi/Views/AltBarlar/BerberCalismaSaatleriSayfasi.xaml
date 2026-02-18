@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="berber_randevu_uygulamasi.Views.AltBarlar.BerberCalismaSaatleriSayfasi"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
+             Title="Çalışma Saatleri"
+            BackgroundColor="#0F0F0F">
+    <Grid RowDefinitions="*,Auto,Auto">
+
+        <!-- İÇERİK -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="12,10" Spacing="12">
+
+                <!-- Gün Kartları -->
+                <!-- Pazartesi -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <Label Text="Pazartesi"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+
+                            <Switch x:Name="swPzt"
+                                    Grid.Column="1"
+                                    IsToggled="True"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Açılış"
+                                       FontSize="12"
+                                       TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtPztAcilis"
+                                       Text="09:00"
+                                       Placeholder="09:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Kapanış"
+                                       FontSize="12"
+                                       TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtPztKapanis"
+                                       Text="21:00"
+                                       Placeholder="21:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Salı -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Salı"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+                            <Switch x:Name="swSal"
+                                    Grid.Column="1"
+                                    IsToggled="True"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtSalAcilis"
+                                       Text="09:00"
+                                       Placeholder="09:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Kapanış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtSalKapanis"
+                                       Text="21:00"
+                                       Placeholder="21:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Çarşamba -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Çarşamba"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+                            <Switch x:Name="swCar"
+                                    Grid.Column="1"
+                                    IsToggled="True"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtCarAcilis"
+                                       Text="09:00"
+                                       Placeholder="09:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Kapanış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtCarKapanis"
+                                       Text="21:00"
+                                       Placeholder="21:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Perşembe -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Perşembe"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+                            <Switch x:Name="swPer"
+                                    Grid.Column="1"
+                                    IsToggled="True"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtPerAcilis"
+                                       Text="09:00"
+                                       Placeholder="09:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Kapanış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtPerKapanis"
+                                       Text="21:00"
+                                       Placeholder="21:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Cuma -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Cuma"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+                            <Switch x:Name="swCum"
+                                    Grid.Column="1"
+                                    IsToggled="True"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtCumAcilis"
+                                       Text="09:00"
+                                       Placeholder="09:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Kapanış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtCumKapanis"
+                                       Text="21:00"
+                                       Placeholder="21:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Pazar (kapalı örneği) -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14"
+                        Opacity="0.7">
+                    <VerticalStackLayout Spacing="10">
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Pazar"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+                            <Switch x:Name="swPaz"
+                                    Grid.Column="1"
+                                    IsToggled="False"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" IsEnabled="False">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtPazAcilis"
+                                       Text="09:00"
+                                       Placeholder="09:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Kapanış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtPazKapanis"
+                                       Text="21:00"
+                                       Placeholder="21:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <BoxView HeightRequest="10" Opacity="0"/>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- KAYDET -->
+        <Border Grid.Row="1"
+                BackgroundColor="#0F0F0F"
+                Padding="12,10">
+            <Button Text="Kaydet"
+                    x:Name="btnKaydet"
+                    BackgroundColor="#FF8A00"
+                    TextColor="White"
+                    CornerRadius="16"
+                    HeightRequest="52"/>
+        </Border>
+
+        <!-- ALT BAR -->
+        <altbar:BerberAltBar Grid.Row="2"/>
+
+    </Grid>
+</ContentPage>

@@ -62,6 +62,18 @@
                            TextColor="#2C2B20"
                            PlaceholderColor="#999"
                            FontSize="16" />
+             
+                    <!--Telefon-->
+                    <Entry x:Name="TelefonEntry"
+                           Placeholder="Telefon (05xx xxx xx xx)"
+                           Keyboard="Telephone"
+                           MaxLength="20"
+                           FontSize="18"
+                           HeightRequest="50"
+                           BackgroundColor="White"
+                           TextColor="Black"
+                           PlaceholderColor="#8C8C8C"
+                           WidthRequest="250"/>
 
                     <!-- Kayıt Ol Butonu -->
                     <Button Text="Kayıt Ol"

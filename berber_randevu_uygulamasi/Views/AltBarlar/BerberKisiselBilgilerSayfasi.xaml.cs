@@ -1,0 +1,311 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using Npgsql;
+using berber_randevu_uygulamasi.Services;
+
+namespace berber_randevu_uygulamasi.Views.AltBarlar;
+
+public partial class BerberKisiselBilgilerSayfasi : ContentPage
+{
+    private int _berberId;
+
+    // "Geri Al" için baþlangýç deðerlerini tutalým
+    private string _ilkAd = "";
+    private string _ilkSoyad = "";
+    private string _ilkTelefon = "";
+    private string _ilkEposta = "";
+    private string _ilkKullaniciAdi = "";
+
+    private string _ilkBerberAdi = "";
+    private string _ilkAdres = "";
+    private string _ilkAcilis = "";
+    private string _ilkKapanis = "";
+
+    private string _ilkProfilPath = "";
+
+    public BerberKisiselBilgilerSayfasi()
+    {
+        InitializeComponent();
+
+        btnKaydet.Clicked += Kaydet_Clicked;
+        btnGeriAl.Clicked += GeriAl_Clicked;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await YukleAsync();
+    }
+
+    private async Task YukleAsync()
+    {
+        try
+        {
+            _berberId = await GetBerberIdByKullaniciIdAsync(UserSession.KullaniciId);
+
+            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+            await conn.OpenAsync();
+
+            // 1) Kullanýcý bilgileri
+            // NOT: Eposta / KullaniciAdi kolonlarýn farklýysa burada deðiþtir.
+            string sqlUser = @"
+                SELECT ""Ad"", ""Soyad"", ""Telefon"",
+                       COALESCE(""Eposta"", ''), 
+                       COALESCE(""KullaniciAdi"", ''),
+                       COALESCE(""ProfilFoto"", '')
+                FROM kullanici
+                WHERE ""ID"" = @id
+                LIMIT 1;";
+
+            await using (var cmd = new NpgsqlCommand(sqlUser, conn))
+            {
+                cmd.Parameters.AddWithValue("@id", UserSession.KullaniciId);
+
+                await using var dr = await cmd.ExecuteReaderAsync();
+                if (await dr.ReadAsync())
+                {
+                    var ad = dr.IsDBNull(0) ? "" : dr.GetString(0);
+                    var soyad = dr.IsDBNull(1) ? "" : dr.GetString(1);
+                    var tel = dr.IsDBNull(2) ? "" : dr.GetString(2);
+                    var eposta = dr.IsDBNull(3) ? "" : dr.GetString(3);
+                    var kullaniciAdi = dr.IsDBNull(4) ? "" : dr.GetString(4);
+                    var profilPath = dr.IsDBNull(5) ? "" : dr.GetString(5);
+
+                    // Üst kart
+                    lblAdSoyad.Text = $"{ad} {soyad}".Trim();
+                    lblTelefonUst.Text = tel;
+                    lblRol.Text = "Rol: Sahip";
+
+                    // Form
+                    txtAd.Text = ad;
+                    txtSoyad.Text = soyad;
+                    txtTelefon.Text = tel;
+                    txtEposta.Text = eposta;
+                    txtKullaniciAdi.Text = kullaniciAdi;
+
+                    // Profil resmi (path)
+                    _ilkProfilPath = profilPath;
+                    SetImageFromPath(imgProfil, profilPath, "default_user.png");
+
+                    // Geri al için kaydet
+                    _ilkAd = ad;
+                    _ilkSoyad = soyad;
+                    _ilkTelefon = tel;
+                    _ilkEposta = eposta;
+                    _ilkKullaniciAdi = kullaniciAdi;
+                }
+            }
+
+            // 2) Berber / Dükkan bilgileri
+            string sqlShop = @"
+                SELECT COALESCE(""BerberAdi"", ''),
+                       COALESCE(""Adres"", ''),
+                       COALESCE(""AcilisSaati"", '00:00'::time),
+                       COALESCE(""KapanisSaati"", '00:00'::time)
+                FROM ""Berberler""
+                WHERE ""BerberID"" = @bid
+                LIMIT 1;";
+
+            await using (var cmd2 = new NpgsqlCommand(sqlShop, conn))
+            {
+                cmd2.Parameters.AddWithValue("@bid", _berberId);
+
+                await using var dr2 = await cmd2.ExecuteReaderAsync();
+                if (await dr2.ReadAsync())
+                {
+                    var berberAdi = dr2.IsDBNull(0) ? "" : dr2.GetString(0);
+                    var adres = dr2.IsDBNull(1) ? "" : dr2.GetString(1);
+                    var acilis = dr2.IsDBNull(2) ? "" : dr2.GetTimeSpan(2).ToString(@"hh\:mm");
+                    var kapanis = dr2.IsDBNull(3) ? "" : dr2.GetTimeSpan(3).ToString(@"hh\:mm");
+
+                    txtBerberAdi.Text = berberAdi;
+                    txtAdres.Text = adres;
+                    txtAcilis.Text = acilis;
+                    txtKapanis.Text = kapanis;
+
+                    _ilkBerberAdi = berberAdi;
+                    _ilkAdres = adres;
+                    _ilkAcilis = acilis;
+                    _ilkKapanis = kapanis;
+                }
+            }
+        }
+        catch (PostgresException pgex)
+        {
+            // Kolon adý uyuþmazlýðý gibi durumlarda net hata verir
+            await DisplayAlert("DB Hata", pgex.MessageText, "Tamam");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", ex.Message, "Tamam");
+        }
+    }
+
+    private static void SetImageFromPath(Image img, string? path, string defaultImage)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                img.Source = ImageSource.FromFile(path);
+            else
+                img.Source = defaultImage;
+        }
+        catch
+        {
+            img.Source = defaultImage;
+        }
+    }
+
+    private async void Kaydet_Clicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            // Basit validasyon
+            var ad = (txtAd.Text ?? "").Trim();
+            var soyad = (txtSoyad.Text ?? "").Trim();
+            var tel = (txtTelefon.Text ?? "").Trim();
+            var eposta = (txtEposta.Text ?? "").Trim();
+
+            var berberAdi = (txtBerberAdi.Text ?? "").Trim();
+            var adres = (txtAdres.Text ?? "").Trim();
+            var acilisText = (txtAcilis.Text ?? "").Trim();
+            var kapanisText = (txtKapanis.Text ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(ad) || string.IsNullOrWhiteSpace(soyad))
+            {
+                await DisplayAlert("Uyarý", "Ad ve Soyad boþ olamaz.", "Tamam");
+                return;
+            }
+
+            if (!TryParseTime(acilisText, out var acilis))
+            {
+                await DisplayAlert("Uyarý", "Açýlýþ saati formatý hatalý. Örn: 09:00", "Tamam");
+                return;
+            }
+
+            if (!TryParseTime(kapanisText, out var kapanis))
+            {
+                await DisplayAlert("Uyarý", "Kapanýþ saati formatý hatalý. Örn: 21:00", "Tamam");
+                return;
+            }
+
+            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+            await conn.OpenAsync();
+
+            // 1) Kullanýcý update
+            // NOT: Eposta kolonu farklýysa deðiþtir.
+            string sqlUserUpd = @"
+                UPDATE kullanici
+                SET ""Ad""=@ad, ""Soyad""=@soyad, ""Telefon""=@tel, ""Eposta""=@eposta
+                WHERE ""ID""=@id;";
+
+            await using (var cmd = new NpgsqlCommand(sqlUserUpd, conn))
+            {
+                cmd.Parameters.AddWithValue("@ad", ad);
+                cmd.Parameters.AddWithValue("@soyad", soyad);
+                cmd.Parameters.AddWithValue("@tel", tel);
+                cmd.Parameters.AddWithValue("@eposta", eposta);
+                cmd.Parameters.AddWithValue("@id", UserSession.KullaniciId);
+
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // 2) Berberler update
+            string sqlShopUpd = @"
+                UPDATE ""Berberler""
+                SET ""BerberAdi""=@badi,
+                    ""Adres""=@adres,
+                    ""AcilisSaati""=@acilis,
+                    ""KapanisSaati""=@kapanis
+                WHERE ""BerberID""=@bid;";
+
+            await using (var cmd2 = new NpgsqlCommand(sqlShopUpd, conn))
+            {
+                cmd2.Parameters.AddWithValue("@badi", berberAdi);
+                cmd2.Parameters.AddWithValue("@adres", adres);
+                cmd2.Parameters.AddWithValue("@acilis", acilis);
+                cmd2.Parameters.AddWithValue("@kapanis", kapanis);
+                cmd2.Parameters.AddWithValue("@bid", _berberId);
+
+                await cmd2.ExecuteNonQueryAsync();
+            }
+
+            // UI güncelle
+            lblAdSoyad.Text = $"{ad} {soyad}".Trim();
+            lblTelefonUst.Text = tel;
+
+            // Geri al için yeni deðerleri “ilk” yap
+            _ilkAd = ad;
+            _ilkSoyad = soyad;
+            _ilkTelefon = tel;
+            _ilkEposta = eposta;
+
+            _ilkBerberAdi = berberAdi;
+            _ilkAdres = adres;
+            _ilkAcilis = acilisText;
+            _ilkKapanis = kapanisText;
+
+            // UserSession da güncellensin
+            UserSession.Ad = ad;
+            UserSession.Soyad = soyad;
+
+            await DisplayAlert("Baþarýlý", "Bilgiler güncellendi.", "Tamam");
+        }
+        catch (PostgresException pgex)
+        {
+            await DisplayAlert("DB Hata", pgex.MessageText, "Tamam");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", ex.Message, "Tamam");
+        }
+    }
+
+    private async void GeriAl_Clicked(object? sender, EventArgs e)
+    {
+        txtAd.Text = _ilkAd;
+        txtSoyad.Text = _ilkSoyad;
+        txtTelefon.Text = _ilkTelefon;
+        txtEposta.Text = _ilkEposta;
+        txtKullaniciAdi.Text = _ilkKullaniciAdi;
+
+        txtBerberAdi.Text = _ilkBerberAdi;
+        txtAdres.Text = _ilkAdres;
+        txtAcilis.Text = _ilkAcilis;
+        txtKapanis.Text = _ilkKapanis;
+
+        lblAdSoyad.Text = $"{_ilkAd} {_ilkSoyad}".Trim();
+        lblTelefonUst.Text = _ilkTelefon;
+
+        SetImageFromPath(imgProfil, _ilkProfilPath, "default_user.png");
+
+        await DisplayAlert("Bilgi", "Deðiþiklikler geri alýndý.", "Tamam");
+    }
+
+    private static bool TryParseTime(string text, out TimeSpan time)
+    {
+        // "09:00" gibi
+        return TimeSpan.TryParse(text, out time);
+    }
+
+    private async Task<int> GetBerberIdByKullaniciIdAsync(int kullaniciId)
+    {
+        await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+        await conn.OpenAsync();
+
+        string sql = @"
+            SELECT ""BerberID""
+            FROM ""Berberler""
+            WHERE ""KullaniciID"" = @kid
+            LIMIT 1;";
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@kid", kullaniciId);
+
+        var obj = await cmd.ExecuteScalarAsync();
+        if (obj == null) throw new Exception("Bu kullanýcýya ait berber kaydý bulunamadý.");
+
+        return Convert.ToInt32(obj);
+    }
+}

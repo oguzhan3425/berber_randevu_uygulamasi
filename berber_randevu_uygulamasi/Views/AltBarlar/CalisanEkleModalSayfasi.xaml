@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="berber_randevu_uygulamasi.Views.CalisanEkleModalSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#0F0F0F"
+    Title="Çalışan Ekle">
+
+    <Grid Padding="14" RowDefinitions="Auto,Auto,Auto,*">
+
+        <Border BackgroundColor="#1A1A1A"
+                Stroke="#2B2B2B"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 18"
+                Padding="14">
+
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Kullanıcı ID ile çalışan ekle"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#F2F2F2"/>
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <Entry x:Name="txtKullaniciId"
+                           Placeholder="Örn: 3"
+                           Keyboard="Numeric"
+                           TextColor="#F2F2F2"
+                           PlaceholderColor="#777"
+                           BackgroundColor="#232323"/>
+
+                    <Button Grid.Column="1"
+                            Text="Ara"
+                            Clicked="Ara_Clicked"/>
+                </Grid>
+
+                <!-- Sonuç kartı -->
+                <Border x:Name="sonucKart"
+                        IsVisible="False"
+                        BackgroundColor="#232323"
+                        Stroke="#2B2B2B"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="12">
+
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                        <Label x:Name="lblAdSoyad"
+                               Text="—"
+                               FontAttributes="Bold"
+                               TextColor="#F2F2F2"/>
+
+                        <Label Grid.Row="1"
+                               x:Name="lblTelefon"
+                               Text="—"
+                               FontSize="12"
+                               TextColor="#BDBDBD"/>
+
+                        <Label Grid.Row="2"
+                               x:Name="lblTip"
+                               Text="—"
+                               FontSize="12"
+                               TextColor="#BDBDBD"/>
+
+                        <Button Grid.Column="1"
+                                Grid.RowSpan="3"
+                                Text="Ekle"
+                                Clicked="Ekle_Clicked"/>
+                    </Grid>
+                </Border>
+
+                <Label x:Name="lblBilgi"
+                       Text=""
+                       FontSize="12"
+                       TextColor="#BDBDBD"
+                       IsVisible="False"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <Button Grid.Row="3"
+                Text="Kapat"
+                BackgroundColor="#151515"
+                TextColor="#F2F2F2"
+                CornerRadius="18"
+                HeightRequest="50"
+                Clicked="Kapat_Clicked"
+                VerticalOptions="End"/>
+    </Grid>
+</ContentPage>

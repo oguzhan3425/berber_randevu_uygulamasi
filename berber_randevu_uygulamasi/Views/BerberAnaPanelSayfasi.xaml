@@ -12,60 +12,194 @@
             <VerticalStackLayout Padding="12,10" Spacing="12">
 
                 <!-- Üst Profil Kartı -->
-                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                        <Border BackgroundColor="#232323" StrokeShape="RoundRectangle 14" WidthRequest="52" HeightRequest="52">
-                            <Label Text="✂️" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+
+                    <Grid ColumnDefinitions="Auto,*,Auto"
+                          RowDefinitions="Auto,Auto"
+                          VerticalOptions="Center">
+
+                        <!-- SOL: Foto/ikon -->
+                        <Border Grid.Column="0"
+                                BackgroundColor="#232323"
+                                StrokeShape="RoundRectangle 14"
+                                WidthRequest="52"
+                                HeightRequest="52">
+                            <Label Text="✂"
+                                   FontSize="22"
+                                   TextColor="#F2F2F2"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
                         </Border>
 
+                        <!-- ORTA: Dükkan adı / şube -->
                         <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2">
-                            <Label Text="Oğuzhan Barber" FontSize="18" FontAttributes="Bold" TextColor="#F2F2F2"/>
-                            <Label Text="Merkez Şube" FontSize="12" TextColor="#BDBDBD"/>
+                            <Label x:Name="lblBerberAdi"
+                                   Text="Oğuzhan Barber"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+                            <Label x:Name="lblSubeAdi"
+                                   Text="Merkez Şube"
+                                   FontSize="12"
+                                   TextColor="#BDBDBD"/>
                         </VerticalStackLayout>
+
+                        <!-- SAĞ: Sahip (foto + ad soyad) -->
+                        <VerticalStackLayout Grid.Column="2"
+                                             HorizontalOptions="End"
+                                             Spacing="2">
+
+                            <Label Text="Sahip"
+                                   FontSize="11"
+                                   TextColor="#BDBDBD"
+                                   HorizontalTextAlignment="End"/>
+
+                            <HorizontalStackLayout Spacing="8"
+                                                   HorizontalOptions="End"
+                                                   VerticalOptions="Center">
+
+                                <Image x:Name="imgSahipFoto"
+                                       WidthRequest="34"
+                                       HeightRequest="34"
+                                       Aspect="AspectFill"
+                                       Source="default_user.png">
+                                    <Image.Clip>
+                                        <EllipseGeometry Center="17,17"
+                                                         RadiusX="17"
+                                                         RadiusY="17"/>
+                                    </Image.Clip>
+                                </Image>
+
+                                <Label x:Name="lblSahipAdSoyad"
+                                       Text="—"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="#F2F2F2"
+                                       VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+
+                        </VerticalStackLayout>
+
                     </Grid>
                 </Border>
 
                 <!-- Bugün Özet -->
-                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
                     <VerticalStackLayout Spacing="10">
-                        <Label Text="Bugün" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                        <Label Text="Bugün"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="#F2F2F2"/>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Border BackgroundColor="#232323" StrokeShape="RoundRectangle 14" Padding="12">
+                            <Border BackgroundColor="#232323"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="12">
                                 <VerticalStackLayout Spacing="2">
-                                    <Label Text="Randevu" FontSize="12" TextColor="#BDBDBD"/>
-                                    <Label x:Name="lblBugunRandevu" Text="0" FontSize="24" FontAttributes="Bold" TextColor="#F2F2F2"/>
+                                    <Label Text="Randevu"
+                                           FontSize="12"
+                                           TextColor="#BDBDBD"/>
+                                    <Label x:Name="lblBugunRandevu"
+                                           Text="0"
+                                           FontSize="24"
+                                           FontAttributes="Bold"
+                                           TextColor="#F2F2F2"/>
                                 </VerticalStackLayout>
                             </Border>
 
-                            <Border Grid.Column="1" BackgroundColor="#232323" StrokeShape="RoundRectangle 14" Padding="12">
+                            <Border Grid.Column="1"
+                                    BackgroundColor="#232323"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="12">
                                 <VerticalStackLayout Spacing="2">
-                                    <Label Text="Sıradaki" FontSize="12" TextColor="#BDBDBD"/>
-                                    <Label x:Name="lblSiradakiIsim" Text="—" FontAttributes="Bold" TextColor="#F2F2F2"/>
-                                    <Label x:Name="lblSiradakiSaat" Text="—" FontSize="12" TextColor="#BDBDBD"/>
+                                    <Label Text="Sıradaki"
+                                           FontSize="12"
+                                           TextColor="#BDBDBD"/>
+                                    <Label x:Name="lblSiradakiIsim"
+                                           Text="—"
+                                           FontAttributes="Bold"
+                                           TextColor="#F2F2F2"/>
+                                    <Label x:Name="lblSiradakiSaat"
+                                           Text="—"
+                                           FontSize="12"
+                                           TextColor="#BDBDBD"/>
                                 </VerticalStackLayout>
                             </Border>
                         </Grid>
 
+                        <!-- Kart butonlar -->
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Button Text="Bugün Randevular" Clicked="BugunRandevular_Clicked"/>
-                            <Button Grid.Column="1" Text="Çalışma Saatleri" Clicked="CalismaSaatleri_Clicked"/>
+
+                            <Border BackgroundColor="#232323"
+                                    Stroke="#2B2B2B"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="12">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="BugunRandevular_Tapped"/>
+                                </Border.GestureRecognizers>
+                                <Label Text="Bugün Randevular"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       TextColor="#F2F2F2"
+                                       FontAttributes="Bold"/>
+                            </Border>
+
+                            <Border Grid.Column="1"
+                                    BackgroundColor="#232323"
+                                    Stroke="#2B2B2B"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="12">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="CalismaSaatleri_Tapped"/>
+                                </Border.GestureRecognizers>
+                                <Label Text="Çalışma Saatleri"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       TextColor="#F2F2F2"
+                                       FontAttributes="Bold"/>
+                            </Border>
+
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Uyarılar -->
-                <Border BackgroundColor="#1A1A1A" Stroke="#2B2B2B" StrokeShape="RoundRectangle 18" Padding="14">
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Uyarılar" FontSize="16" FontAttributes="Bold" TextColor="#F2F2F2"/>
-                        <Label Text="• Bugün iptal edilen randevu yok." FontSize="12" TextColor="#BDBDBD"/>
-                        <Label Text="• 15 dk içinde randevu: yok." FontSize="12" TextColor="#BDBDBD"/>
+                        <Label Text="Uyarılar"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="#F2F2F2"/>
+                        <Label x:Name="lblUyari1"
+                               Text="• Bugün iptal edilen randevu yok."
+                               FontSize="12"
+                               TextColor="#BDBDBD"/>
+                        <Label x:Name="lblUyari2"
+                               Text="• 15 dk içinde randevu: yok."
+                               FontSize="12"
+                               TextColor="#BDBDBD"/>
                     </VerticalStackLayout>
                 </Border>
 
             </VerticalStackLayout>
         </ScrollView>
 
+        <!-- ALT BAR -->
         <altbar:BerberAltBar Grid.Row="1"/>
     </Grid>
 </ContentPage>

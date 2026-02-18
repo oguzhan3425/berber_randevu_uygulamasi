@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="berber_randevu_uygulamasi.Views.AltBarlar.BerberKisiselBilgilerSayfasi"
+             xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
+             Title="Kişisel Bilgiler"
+             BackgroundColor="#0F0F0F">
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- İÇERİK -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="12,14" Spacing="14">
+
+                <!-- PROFİL KARTI -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+
+                        <!-- Foto -->
+                        <Border WidthRequest="86"
+                                HeightRequest="86"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 43"
+                                BackgroundColor="#232323"
+                                VerticalOptions="Center">
+
+                            <Image x:Name="imgProfil"
+                                   Aspect="AspectFill"
+                                   Source="default_user.png">
+                                <Image.Clip>
+                                    <EllipseGeometry Center="43,43" RadiusX="43" RadiusY="43"/>
+                                </Image.Clip>
+                            </Image>
+                        </Border>
+
+                        <!-- Bilgiler -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                            <Label x:Name="lblAdSoyad"
+                                   Text="Oğuzhan Aydın"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   TextColor="#F2F2F2"/>
+
+                            <Label x:Name="lblRol"
+                                   Text="Rol: Sahip"
+                                   FontSize="13"
+                                   TextColor="#BDBDBD"/>
+
+                            <Label x:Name="lblTelefonUst"
+                                   Text="+90 531 123 45 67"
+                                   FontSize="13"
+                                   TextColor="#BDBDBD"/>
+                        </VerticalStackLayout>
+
+                    </Grid>
+                </Border>
+
+                <!-- HESAP -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Hesap"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="#FF8A00"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Ad" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtAd"
+                                       Placeholder="Ad"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Soyad" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtSoyad"
+                                       Placeholder="Soyad"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Telefon" FontSize="12" TextColor="#BDBDBD"/>
+                            <Entry x:Name="txtTelefon"
+                                   Placeholder="+90 5xx xxx xx xx"
+                                   Keyboard="Telephone"
+                                   TextColor="#F2F2F2"
+                                   PlaceholderColor="#777"
+                                   BackgroundColor="#232323"/>
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="E-Posta" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtEposta"
+                                       Placeholder="mail@ornek.com"
+                                       Keyboard="Email"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Kullanıcı Adı" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtKullaniciAdi"
+                                       Placeholder="kullaniciadi"
+                                       IsReadOnly="True"
+                                       TextColor="#BDBDBD"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- DÜKKAN BİLGİLERİ (Telefon yok) -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Dükkan Bilgileri"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="#FF8A00"/>
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Berber Adı" FontSize="12" TextColor="#BDBDBD"/>
+                            <Entry x:Name="txtBerberAdi"
+                                   Placeholder="Berber adı"
+                                   TextColor="#F2F2F2"
+                                   PlaceholderColor="#777"
+                                   BackgroundColor="#232323"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Adres" FontSize="12" TextColor="#BDBDBD"/>
+                            <Entry x:Name="txtAdres"
+                                   Placeholder="Adres"
+                                   TextColor="#F2F2F2"
+                                   PlaceholderColor="#777"
+                                   BackgroundColor="#232323"/>
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtAcilis"
+                                       Placeholder="09:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Kapanış" FontSize="12" TextColor="#BDBDBD"/>
+                                <Entry x:Name="txtKapanis"
+                                       Placeholder="21:00"
+                                       TextColor="#F2F2F2"
+                                       PlaceholderColor="#777"
+                                       BackgroundColor="#232323"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- BUTONLAR -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Button Text="Kaydet"
+                            x:Name="btnKaydet"
+                            BackgroundColor="#FF8A00"
+                            TextColor="White"
+                            CornerRadius="14"
+                            HeightRequest="48"/>
+
+                    <Button Grid.Column="1"
+                            Text="Geri Al"
+                            x:Name="btnGeriAl"
+                            BackgroundColor="#232323"
+                            TextColor="#F2F2F2"
+                            CornerRadius="14"
+                            HeightRequest="48"/>
+                </Grid>
+
+                <!-- Alt bar üstü boşluk -->
+                <BoxView HeightRequest="10" Opacity="0"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ALT BAR -->
+        <altbar:BerberAltBar Grid.Row="1"/>
+
+    </Grid>
+</ContentPage>

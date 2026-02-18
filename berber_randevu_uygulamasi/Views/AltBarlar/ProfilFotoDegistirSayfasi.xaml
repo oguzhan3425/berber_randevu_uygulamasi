@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="berber_randevu_uygulamasi.Views.AltBarlar.ProfilFotoDegistirSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Profil Fotoğrafı"
+    BackgroundColor="#0F0F0F">
+
+    <Grid VerticalOptions="Center" HorizontalOptions="Center">
+        <VerticalStackLayout Spacing="22" HorizontalOptions="Center">
+
+            <Button Text="📷  Kamerayı Aç"
+                    WidthRequest="240" HeightRequest="120"
+                    BackgroundColor="#FF8A00"
+                    TextColor="White"
+                    CornerRadius="16"
+                    FontSize="18"
+                    Clicked="KameraAc_Clicked"/>
+
+            <Button Text="🖼  Galeriden Seç"
+                    WidthRequest="240" HeightRequest="120"
+                    BackgroundColor="#FF8A00"
+                    TextColor="White"
+                    CornerRadius="16"
+                    FontSize="18"
+                    Clicked="GaleridenSec_Clicked"/>
+
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

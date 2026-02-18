@@ -1,16 +1,12 @@
-﻿using Microsoft.Maui.Controls;
-using Microsoft.Data.SqlClient; // SQL bağlantısı için gerekli
-using System;
-using System.Threading.Tasks;
+﻿using System;
+using Microsoft.Maui.Controls;
+using Npgsql;
+using berber_randevu_uygulamasi.Services; // DbConfig burada değilse namespace'i düzelt
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class KayitOlSayfasi : ContentPage
     {
-        // ✅ Windows Authentication için güvenli bağlantı (localhost kullan)
-        private readonly string connectionString =
-            "Data Source=localhost\\SQLEXPRESS;Initial Catalog=BerberDB;Integrated Security=True;TrustServerCertificate=True;";
-
         public KayitOlSayfasi()
         {
             InitializeComponent();
@@ -18,17 +14,24 @@ namespace berber_randevu_uygulamasi.Views
 
         private async void KayitOl_Clicked(object sender, EventArgs e)
         {
-            // 💡 Form alanlarını XAML'deki Entry adlarıyla eşleştir
-            string ad = AdEntry.Text;
-            string soyad = SoyadEntry.Text;
-            string kullaniciAdi = KullaniciAdiEntry.Text;
-            string eposta = EmailEntry.Text;
-            string sifre = SifreEntry.Text;
+            // Form alanlarını oku
+            string Ad = AdEntry.Text?.Trim() ?? "";
+            string Soyad = SoyadEntry.Text?.Trim() ?? "";
+            string KullaniciAdi = KullaniciAdiEntry.Text?.Trim() ?? "";
+            string Eposta = EmailEntry.Text?.Trim() ?? "";
+            string Sifre = SifreEntry.Text ?? "";
+            string Telefon = TelefonEntry.Text?.Trim() ?? "";
 
-            // 🧠 Boş alan kontrolü
-            if (string.IsNullOrWhiteSpace(ad) || string.IsNullOrWhiteSpace(soyad) ||
-                string.IsNullOrWhiteSpace(kullaniciAdi) ||
-                string.IsNullOrWhiteSpace(eposta) || string.IsNullOrWhiteSpace(sifre))
+            Telefon = new string(Telefon.Where(char.IsDigit).ToArray());
+
+            // Boş alan kontrolü
+            if (string.IsNullOrWhiteSpace(Ad) ||
+                string.IsNullOrWhiteSpace(Soyad) ||
+                string.IsNullOrWhiteSpace(KullaniciAdi) ||
+                string.IsNullOrWhiteSpace(Eposta) ||
+                string.IsNullOrWhiteSpace(Sifre) ||
+                string.IsNullOrWhiteSpace(Telefon))
+
             {
                 await DisplayAlert("Uyarı", "Lütfen tüm alanları doldurunuz.", "Tamam");
                 return;
@@ -36,34 +39,39 @@ namespace berber_randevu_uygulamasi.Views
 
             try
             {
-                using (SqlConnection baglanti = new SqlConnection(connectionString))
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+                await conn.OpenAsync();
+
+                // Not: Eğer KullaniciTipi kolonu NOT NULL ise burada da göndermen gerekir.
+                string sql = @"
+                    INSERT INTO kullanici (""Ad"", ""Soyad"", ""KullaniciAdi"", ""Eposta"", ""Sifre"", ""KullaniciTipi"",""Telefon"")
+                    VALUES (@Ad, @Soyad, @KullaniciAdi, @Eposta, @Sifre, @Tip, @Telefon);";
+
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Ad", Ad);
+                cmd.Parameters.AddWithValue("@Soyad", Soyad);
+                cmd.Parameters.AddWithValue("@KullaniciAdi", KullaniciAdi);
+                cmd.Parameters.AddWithValue("@Eposta", Eposta);
+                cmd.Parameters.AddWithValue("@Sifre", Sifre);
+                cmd.Parameters.AddWithValue("@Telefon", Telefon);
+                cmd.Parameters.AddWithValue("@Tip", "Musteri"); // kayıt olan varsayılan müşteri olsun
+
+                int sonuc = await cmd.ExecuteNonQueryAsync();
+
+                if (sonuc > 0)
                 {
-                    await baglanti.OpenAsync();
-
-                    
-
-                    // 🧩 INSERT sorgusu
-                    string sorgu = "INSERT INTO Kullanici (Ad, Soyad, KullaniciAdi, Eposta, Sifre) VALUES (@Ad, @Soyad, @KullaniciAdi, @Eposta, @Sifre)";
-
-                    using (SqlCommand komut = new SqlCommand(sorgu, baglanti))
-                    {
-                        komut.Parameters.AddWithValue("@Ad", ad);
-                        komut.Parameters.AddWithValue("@Soyad", soyad);
-                        komut.Parameters.AddWithValue("@KullaniciAdi", kullaniciAdi);
-                        komut.Parameters.AddWithValue("@Eposta", eposta);
-                        komut.Parameters.AddWithValue("@Sifre", sifre);
-
-                        int sonuc = await komut.ExecuteNonQueryAsync();
-
-                        if (sonuc > 0)
-                            await DisplayAlert("Başarılı", "Kayıt işlemi tamamlandı!", "Tamam");
-                        else
-                            await DisplayAlert("Hata", "Kayıt eklenemedi!", "Tamam");
-                    }
+                    await DisplayAlert("Başarılı", "Kayıt işlemi tamamlandı!", "Tamam");
+                    await Navigation.PushAsync(new GirisSayfasi());
                 }
-
-                // ✅ Başarılıysa giriş sayfasına yönlendir
-                await Navigation.PushAsync(new GirisSayfasi());
+                else
+                {
+                    await DisplayAlert("Hata", "Kayıt eklenemedi!", "Tamam");
+                }
+            }
+            catch (PostgresException pex) when (pex.SqlState == "23505")
+            {
+                // Unique ihlali (ör: KullaniciAdi unique ise)
+                await DisplayAlert("Hata", "Bu kullanıcı adı veya e-posta zaten kayıtlı.", "Tamam");
             }
             catch (Exception ex)
             {

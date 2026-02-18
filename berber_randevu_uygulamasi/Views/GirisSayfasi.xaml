@@ -1,7 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="berber_randevu_uygulamasi.Views.GirisSayfasi"
-             BackgroundColor="#F9F3E9">
+             BackgroundColor="#0F0F0F">
 
     <VerticalStackLayout Padding="30" Spacing="20"
                          VerticalOptions="Center"
@@ -10,33 +10,33 @@
         <Label Text="💈 Elrin Barber"
                FontSize="32"
                FontAttributes="Bold"
-               TextColor="#2B2B1D"
+               TextColor="#F2F2F2"
                HorizontalOptions="Center"/>
 
         <Entry x:Name="kullaniciAdiEntry"
                Placeholder="Kullanıcı Adı"
-               PlaceholderColor="#8C8C8C"
+               PlaceholderColor="#B5B5B5"
                FontSize="18"
                HeightRequest="50"
                Completed="KullaniciAdiEntry_Completed"
-               BackgroundColor="White"
-               TextColor="Black"
+               BackgroundColor="#1C1C1C"
+               TextColor="#F2F2F2"
                Margin="0,10,0,0"
                WidthRequest="250"/>
 
         <Entry x:Name="SifreEntry"
                Placeholder="Şifre"
                IsPassword="True"
-               PlaceholderColor="#8C8C8C"
+               PlaceholderColor="#B5B5B5"
                FontSize="18"
                HeightRequest="50"
                Completed="SifreEntry_Completed"
-               BackgroundColor="White"
-               TextColor="Black"
+               BackgroundColor="#1C1C1C"
+               TextColor="#F2F2F2"
                WidthRequest="250"/>
 
         <Button Text="Giriş Yap"
-                BackgroundColor="#2B2B1D"
+                BackgroundColor="#FF8A00"
                 TextColor="White"
                 FontAttributes="Bold"
                 FontSize="18"
@@ -50,10 +50,11 @@
                 BackgroundColor="#444"
                 TextColor="White"
                 Clicked="DirektBerber_Clicked" />
+        
         <Label Text="Hesabın yok mu?"
                HorizontalOptions="Center"
                FontSize="16"
-               TextColor="#2B2B1D"/>
+               TextColor="#B5B5B5"/>
 
         <Label Text="Kayıt Ol"
                TextColor="#A57C50"

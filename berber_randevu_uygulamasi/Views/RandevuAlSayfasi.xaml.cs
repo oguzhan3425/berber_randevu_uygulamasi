@@ -1,74 +1,63 @@
-using Microsoft.Data.SqlClient;
-using System.Collections.ObjectModel;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Maui.Controls;
+using Npgsql;
 using berber_randevu_uygulamasi.Models;
+using berber_randevu_uygulamasi.Services;
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class RandevuAlSayfasi : ContentPage
     {
-        // Berber listesi artýk STRING deðil -> MODEL
-        private List<Berber> tumBerberler = new List<Berber>();
-
-        private readonly string connectionString =
-            "Data Source=localhost\\SQLEXPRESS;Initial Catalog=BerberDB;Integrated Security=True;TrustServerCertificate=True;";
-
-        private string _ad = "";
-        private string _soyad = "";
-
-        public RandevuAlSayfasi(string ad, string soyad)
-        {
-            InitializeComponent();
-
-            _ad = ad;
-            _soyad = soyad;
-
-            BerberleriYukle();
-        }
+        private readonly List<Berber> tumBerberler = new();
 
         public RandevuAlSayfasi()
         {
             InitializeComponent();
-            BerberleriYukle();
+            _ = BerberleriYukleAsync();
         }
 
         // ---------------------------
         //  VERÝTABANINDAN BERBER ÇEKME
         // ---------------------------
-
-        private async void BerberleriYukle()
+        private async Task BerberleriYukleAsync()
         {
             try
             {
                 tumBerberler.Clear();
 
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+                await conn.OpenAsync();
+
+                // ? PostgreSQL + Büyük harfli tablo/kolon isimleri (týrnaklý)
+                // Eðer þema kullanýyorsan: FROM public."Berberler" veya "berber"."Berberler"
+                string sql = @"
+                    SELECT 
+                        ""BerberID"", ""BerberAdi"", ""Adres"", ""Telefon"", 
+                        ""ResimYolu"", ""Puan"", ""AcilisSaati"", ""KapanisSaati""
+                    FROM ""Berberler""
+                    ORDER BY ""BerberAdi"";";
+
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                await using var dr = await cmd.ExecuteReaderAsync();
+
+                while (await dr.ReadAsync())
                 {
-                    await conn.OpenAsync();
+                    string? dbResim = dr.IsDBNull(4) ? null : dr.GetString(4);
 
-                    string query =
-                        "SELECT BerberID, BerberAdi, Adres, Telefon, ResimYolu, Puan, AcilisSaati, KapanisSaati FROM Berberler";
-
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    tumBerberler.Add(new Berber
                     {
-                        while (await reader.ReadAsync())
-                        {
-                            string? dbResim = reader.IsDBNull(4) ? null : reader.GetString(4);
-                            tumBerberler.Add(new Berber
-                            {
-                                BerberID = reader.GetInt32(0),
-                                BerberAdi = reader.GetString(1),
-                                Adres = reader.GetString(2),
-                                Telefon = reader.GetString(3),
-                                ResimYolu = string.IsNullOrWhiteSpace(dbResim)
-                                        ? "default_berber.png"
-                                        : dbResim,
-                                Puan = reader.GetDecimal(5),
-                                AcilisSaati = reader.GetTimeSpan(6),
-                                KapanisSaati = reader.GetTimeSpan(7)
-                            });
-                        }
-                    }
+                        BerberID = dr.GetInt32(0),
+                        BerberAdi = dr.IsDBNull(1) ? "" : dr.GetString(1),
+                        Adres = dr.IsDBNull(2) ? "" : dr.GetString(2),
+                        Telefon = dr.IsDBNull(3) ? "" : dr.GetString(3),
+                        ResimYolu = string.IsNullOrWhiteSpace(dbResim) ? "default_berber.png" : dbResim,
+                        Puan = dr.IsDBNull(5) ? 0 : dr.GetDecimal(5),
+                        AcilisSaati = dr.IsDBNull(6) ? TimeSpan.Zero : dr.GetTimeSpan(6),
+                        KapanisSaati = dr.IsDBNull(7) ? TimeSpan.Zero : dr.GetTimeSpan(7)
+                    });
                 }
 
                 BerberCollection.ItemsSource = tumBerberler;
@@ -82,44 +71,45 @@ namespace berber_randevu_uygulamasi.Views
         // ---------------------------
         //  ARAMA
         // ---------------------------
-
         private void BerberAraEntry_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string arama = e.NewTextValue?.ToLower() ?? "";
+            string arama = e.NewTextValue?.Trim().ToLower() ?? "";
 
             var filtreliListe = tumBerberler
-                .Where(b => b.BerberAdi.ToLower().Contains(arama))
+                .Where(b => (b.BerberAdi ?? "").ToLower().Contains(arama))
                 .ToList();
 
             BerberCollection.ItemsSource = filtreliListe;
         }
 
+        // ---------------------------
+        //  BERBER SEÇÝMÝ
+        // ---------------------------
         private async void BerberCollection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (e.CurrentSelection.FirstOrDefault() is Berber secilenBerber)
             {
+                BerberCollection.SelectedItem = null;
                 await Navigation.PushAsync(new CalisanSecimSayfasi(secilenBerber));
             }
         }
 
-
         // ---------------------------
-        //  ALT BAR EVENTLERÝ
+        //  ALT BAR
         // ---------------------------
-
         private async void AnaSayfaClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AnaSayfa(_ad, _soyad));
+            await Navigation.PushAsync(new AnaSayfa());
         }
 
         private async void RandevuAlClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new RandevuAlSayfasi(_ad, _soyad));
+            await Navigation.PushAsync(new RandevuAlSayfasi());
         }
 
         private async void ProfilClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new ProfilDuzenleSayfasi(_ad, _soyad));
+            await Navigation.PushAsync(new ProfilDuzenleSayfasi());
         }
     }
 }

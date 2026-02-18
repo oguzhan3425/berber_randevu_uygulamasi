@@ -1,79 +1,110 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:models="clr-namespace:berber_randevu_uygulamasi.Models"
-             x:Class="berber_randevu_uygulamasi.Views.CalisanSecimSayfasi"
-             BackgroundColor="#F6EEDD">
+<ContentPage
+    x:Class="berber_randevu_uygulamasi.Views.CalisanSecimSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Çalışan Seç"
+    BackgroundColor="#0F0F0F">
 
-    <VerticalStackLayout Padding="25">
+    <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- BAŞLIK -->
-        <Label Text="Çalışan Seçin"
-               FontSize="28"
-               FontAttributes="Bold"
-               HorizontalOptions="Center"
-               Margin="0,10" />
+        <!-- ÜST BAR -->
+        <Grid Padding="12,10" ColumnDefinitions="*,Auto">
+            <Label Text="Çalışan Seç"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="#F2F2F2" />
+        </Grid>
 
-        <!-- ÇALIŞAN LİSTESİ -->
-        <CollectionView x:Name="CalisanCollection"
+        <!-- İnce çizgi -->
+        <BoxView Grid.Row="0"
+                 HeightRequest="1"
+                 BackgroundColor="#1E1E1E"
+                 VerticalOptions="End" />
+
+        <!-- LİSTE -->
+        <CollectionView Grid.Row="1"
+                        x:Name="CalisanCollection"
+                        Margin="12,10"
                         SelectionMode="Single"
                         SelectionChanged="CalisanCollection_SelectionChanged">
 
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="20" Spacing="8"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center">
+                    <Label Text="Bu berbere ait çalışan bulunamadı"
+                           TextColor="#BDBDBD"
+                           FontSize="14"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:CalisanKart">
+                <DataTemplate>
+                    <Border Stroke="#262626"
+                            StrokeThickness="1"
+                            BackgroundColor="#151515"
+                            Padding="12"
+                            Margin="0,6">
 
-                    <Border BackgroundColor="#E8D8BE"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 25"
-                            Padding="16"
-                            Margin="0,12">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="18" />
+                        </Border.StrokeShape>
 
-                        <Grid ColumnDefinitions="Auto,*,Auto"
+                        <Grid ColumnDefinitions="60,*,Auto"
+                              ColumnSpacing="12"
                               VerticalOptions="Center">
 
-                            <!-- PROFIL FOTO -->
-                            <Image Source="{Binding Foto}"
-                                   HeightRequest="70"
-                                   WidthRequest="70"
-                                   Aspect="AspectFill"
-                                   VerticalOptions="Center">
-                                <Image.Clip>
-                                    <RoundRectangleGeometry CornerRadius="35" Rect="0,0,70,70" />
-                                </Image.Clip>
-                            </Image>
+                            <!-- Profil Foto (yuvarlak) -->
+                            <Border HeightRequest="52"
+                                    WidthRequest="52"
+                                    BackgroundColor="#222222"
+                                    StrokeThickness="0"
+                                    HorizontalOptions="Start"
+                                    VerticalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="26" />
+                                </Border.StrokeShape>
 
-                            <!-- ÇALIŞAN BILGILERI -->
+                                <Image Source="{Binding Foto}"
+                                       Aspect="AspectFill" />
+                            </Border>
+
+                            <!-- Ad Soyad -->
                             <VerticalStackLayout Grid.Column="1"
-                                                 Spacing="4"
-                                                 VerticalOptions="Center"
-                                                 Margin="15,0,0,0">
-
+                                                 Spacing="2"
+                                                 VerticalOptions="Center">
                                 <Label Text="{Binding Ad}"
-                                       FontSize="22"
-                                       FontAttributes="Bold"
-                                       TextColor="Black" />
-
-                                <Label Text="{Binding Uzmanlik}"
                                        FontSize="16"
-                                       TextColor="#5C5555" />
+                                       FontAttributes="Bold"
+                                       TextColor="#F2F2F2" />
+                                <Label Text="{Binding Soyad}"
+                                       FontSize="13"
+                                       TextColor="#BDBDBD" />
+                                <!-- Uzmanlık/Deneyim kullanıyorsan aç -->
+                                <!--
+                                <Label Text="{Binding Uzmanlik}"
+                                       FontSize="12"
+                                       TextColor="#8E8E8E" />
+                                -->
                             </VerticalStackLayout>
 
-                            <!-- SAĞ OK İKONU -->
-                            <Image Grid.Column="2"
-                                   Source="right_arrow.png"
-                                   HeightRequest="22"
-                                   WidthRequest="22"
-                                   Opacity="0.6"
+                            <!-- Sağ ok -->
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   FontSize="24"
+                                   TextColor="#BDBDBD"
                                    VerticalOptions="Center" />
 
                         </Grid>
-
                     </Border>
-
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-
         </CollectionView>
 
-    </VerticalStackLayout>
+        <!-- ALT BAR varsa buraya eklersin -->
+        <!-- <altbar:AltBar Grid.Row="2" /> -->
+
+    </Grid>
 </ContentPage>
