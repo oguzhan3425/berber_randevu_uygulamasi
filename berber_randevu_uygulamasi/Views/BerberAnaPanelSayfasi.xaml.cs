@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Npgsql;
 using berber_randevu_uygulamasi.Services;
+using berber_randevu_uygulamasi.Views.AltBarlar;
 
 namespace berber_randevu_uygulamasi.Views;
 
@@ -157,5 +158,7 @@ public partial class BerberAnaPanelSayfasi : ContentPage
         => await Navigation.PushAsync(new BerberRandevularSayfasi());
 
     private async void CalismaSaatleri_Tapped(object sender, TappedEventArgs e)
-        => await DisplayAlert("Bilgi", "Çalýþma saatleri sayfasý eklenecek.", "Tamam");
+    {
+        await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi());
+    }
 }

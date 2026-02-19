@@ -10,23 +10,26 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
 {
     private int _berberId;
 
-    // "Geri Al" için baþlangýç deðerlerini tutalým
+    // Opsiyonel: alt bar gösterilsin mi?
+    private readonly bool _showBottomBar;
+
+    // Geri Al için
     private string _ilkAd = "";
     private string _ilkSoyad = "";
     private string _ilkTelefon = "";
     private string _ilkEposta = "";
     private string _ilkKullaniciAdi = "";
+    private string _ilkProfilPath = "";
 
     private string _ilkBerberAdi = "";
     private string _ilkAdres = "";
     private string _ilkAcilis = "";
     private string _ilkKapanis = "";
 
-    private string _ilkProfilPath = "";
-
-    public BerberKisiselBilgilerSayfasi()
+    public BerberKisiselBilgilerSayfasi(bool showBottomBar = false)
     {
         InitializeComponent();
+        _showBottomBar = showBottomBar;
 
         btnKaydet.Clicked += Kaydet_Clicked;
         btnGeriAl.Clicked += GeriAl_Clicked;
@@ -35,20 +38,63 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        await SayfayiRoleGoreHazirlaAsync();
         await YukleAsync();
+    }
+
+    private async Task SayfayiRoleGoreHazirlaAsync()
+    {
+        // Kullanýcý tipini al (session boþsa db’den çek)
+        var tip = (UserSession.KullaniciTipi ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(tip))
+        {
+            tip = await GetKullaniciTipiAsync(UserSession.KullaniciId);
+            UserSession.KullaniciTipi = tip;
+        }
+
+        // Rol yazýsý
+        if (tip.Equals("Calisan", StringComparison.OrdinalIgnoreCase))
+            lblRol.Text = "Rol: Çalýþan";
+        else if (tip.Equals("Berber", StringComparison.OrdinalIgnoreCase) || tip.Equals("Sahip", StringComparison.OrdinalIgnoreCase))
+            lblRol.Text = "Rol: Sahip";
+        else
+            lblRol.Text = "Rol: Müþteri";
+
+        // Dükkan kartý sadece berber/sahip için görünsün
+        bool isBerber = tip.Equals("Berber", StringComparison.OrdinalIgnoreCase) ||
+                        tip.Equals("Sahip", StringComparison.OrdinalIgnoreCase);
+
+        // XAML’de shopCard yoksa bu satýr compile hatasý verir.
+        // O yüzden XAML'e x:Name="shopCard" ekle.
+        shopCard.IsVisible = isBerber;
+
+        // Alt bar opsiyonel (istersen hiç göstermeyiz)
+        if (!_showBottomBar)
+        {
+            // XAML’de BottomBarHost yoksa bu kýsmý komple silebilirsin.
+            BottomBarHost.IsVisible = false;
+            return;
+        }
+
+        // Müþteride alt bar istemiyorsan:
+        bool isMusteri = tip.Equals("Musteri", StringComparison.OrdinalIgnoreCase);
+        BottomBarHost.IsVisible = !isMusteri;
+
+        if (!isMusteri)
+        {
+            barCalisan.IsVisible = tip.Equals("Calisan", StringComparison.OrdinalIgnoreCase);
+            barBerber.IsVisible = !barCalisan.IsVisible;
+        }
     }
 
     private async Task YukleAsync()
     {
         try
         {
-            _berberId = await GetBerberIdByKullaniciIdAsync(UserSession.KullaniciId);
-
             await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
             await conn.OpenAsync();
 
-            // 1) Kullanýcý bilgileri
-            // NOT: Eposta / KullaniciAdi kolonlarýn farklýysa burada deðiþtir.
+            // 1) Kullanýcý bilgileri (herkes)
             string sqlUser = @"
                 SELECT ""Ad"", ""Soyad"", ""Telefon"",
                        COALESCE(""Eposta"", ''), 
@@ -72,23 +118,18 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
                     var kullaniciAdi = dr.IsDBNull(4) ? "" : dr.GetString(4);
                     var profilPath = dr.IsDBNull(5) ? "" : dr.GetString(5);
 
-                    // Üst kart
                     lblAdSoyad.Text = $"{ad} {soyad}".Trim();
                     lblTelefonUst.Text = tel;
-                    lblRol.Text = "Rol: Sahip";
 
-                    // Form
                     txtAd.Text = ad;
                     txtSoyad.Text = soyad;
                     txtTelefon.Text = tel;
                     txtEposta.Text = eposta;
                     txtKullaniciAdi.Text = kullaniciAdi;
 
-                    // Profil resmi (path)
                     _ilkProfilPath = profilPath;
                     SetImageFromPath(imgProfil, profilPath, "default_user.png");
 
-                    // Geri al için kaydet
                     _ilkAd = ad;
                     _ilkSoyad = soyad;
                     _ilkTelefon = tel;
@@ -97,18 +138,22 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
                 }
             }
 
-            // 2) Berber / Dükkan bilgileri
-            string sqlShop = @"
-                SELECT COALESCE(""BerberAdi"", ''),
-                       COALESCE(""Adres"", ''),
-                       COALESCE(""AcilisSaati"", '00:00'::time),
-                       COALESCE(""KapanisSaati"", '00:00'::time)
-                FROM ""Berberler""
-                WHERE ""BerberID"" = @bid
-                LIMIT 1;";
-
-            await using (var cmd2 = new NpgsqlCommand(sqlShop, conn))
+            // 2) Dükkan bilgileri (sadece berber görünür; ama yine de güvenli çekelim)
+            if (shopCard.IsVisible)
             {
+                // berberId bul
+                _berberId = await GetBerberIdByKullaniciIdAsync(UserSession.KullaniciId);
+
+                string sqlShop = @"
+                    SELECT COALESCE(""BerberAdi"", ''),
+                           COALESCE(""Adres"", ''),
+                           COALESCE(""AcilisSaati"", '00:00'::time),
+                           COALESCE(""KapanisSaati"", '00:00'::time)
+                    FROM ""Berberler""
+                    WHERE ""BerberID"" = @bid
+                    LIMIT 1;";
+
+                await using var cmd2 = new NpgsqlCommand(sqlShop, conn);
                 cmd2.Parameters.AddWithValue("@bid", _berberId);
 
                 await using var dr2 = await cmd2.ExecuteReaderAsync();
@@ -133,7 +178,6 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
         }
         catch (PostgresException pgex)
         {
-            // Kolon adý uyuþmazlýðý gibi durumlarda net hata verir
             await DisplayAlert("DB Hata", pgex.MessageText, "Tamam");
         }
         catch (Exception ex)
@@ -161,16 +205,10 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
     {
         try
         {
-            // Basit validasyon
             var ad = (txtAd.Text ?? "").Trim();
             var soyad = (txtSoyad.Text ?? "").Trim();
             var tel = (txtTelefon.Text ?? "").Trim();
             var eposta = (txtEposta.Text ?? "").Trim();
-
-            var berberAdi = (txtBerberAdi.Text ?? "").Trim();
-            var adres = (txtAdres.Text ?? "").Trim();
-            var acilisText = (txtAcilis.Text ?? "").Trim();
-            var kapanisText = (txtKapanis.Text ?? "").Trim();
 
             if (string.IsNullOrWhiteSpace(ad) || string.IsNullOrWhiteSpace(soyad))
             {
@@ -178,23 +216,32 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
                 return;
             }
 
-            if (!TryParseTime(acilisText, out var acilis))
-            {
-                await DisplayAlert("Uyarý", "Açýlýþ saati formatý hatalý. Örn: 09:00", "Tamam");
-                return;
-            }
+            // Dükkan alanlarý sadece berberde güncellenecek
+            var berberAdi = (txtBerberAdi.Text ?? "").Trim();
+            var adres = (txtAdres.Text ?? "").Trim();
+            var acilisText = (txtAcilis.Text ?? "").Trim();
+            var kapanisText = (txtKapanis.Text ?? "").Trim();
 
-            if (!TryParseTime(kapanisText, out var kapanis))
+            TimeSpan acilis = default, kapanis = default;
+            if (shopCard.IsVisible)
             {
-                await DisplayAlert("Uyarý", "Kapanýþ saati formatý hatalý. Örn: 21:00", "Tamam");
-                return;
+                if (!TryParseTime(acilisText, out acilis))
+                {
+                    await DisplayAlert("Uyarý", "Açýlýþ saati formatý hatalý. Örn: 09:00", "Tamam");
+                    return;
+                }
+
+                if (!TryParseTime(kapanisText, out kapanis))
+                {
+                    await DisplayAlert("Uyarý", "Kapanýþ saati formatý hatalý. Örn: 21:00", "Tamam");
+                    return;
+                }
             }
 
             await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
             await conn.OpenAsync();
 
-            // 1) Kullanýcý update
-            // NOT: Eposta kolonu farklýysa deðiþtir.
+            // 1) Kullanýcý update (herkes)
             string sqlUserUpd = @"
                 UPDATE kullanici
                 SET ""Ad""=@ad, ""Soyad""=@soyad, ""Telefon""=@tel, ""Eposta""=@eposta
@@ -207,48 +254,47 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
                 cmd.Parameters.AddWithValue("@tel", tel);
                 cmd.Parameters.AddWithValue("@eposta", eposta);
                 cmd.Parameters.AddWithValue("@id", UserSession.KullaniciId);
-
                 await cmd.ExecuteNonQueryAsync();
             }
 
-            // 2) Berberler update
-            string sqlShopUpd = @"
-                UPDATE ""Berberler""
-                SET ""BerberAdi""=@badi,
-                    ""Adres""=@adres,
-                    ""AcilisSaati""=@acilis,
-                    ""KapanisSaati""=@kapanis
-                WHERE ""BerberID""=@bid;";
-
-            await using (var cmd2 = new NpgsqlCommand(sqlShopUpd, conn))
+            // 2) Berber update (sadece berber)
+            if (shopCard.IsVisible)
             {
+                if (_berberId <= 0)
+                    _berberId = await GetBerberIdByKullaniciIdAsync(UserSession.KullaniciId);
+
+                string sqlShopUpd = @"
+                    UPDATE ""Berberler""
+                    SET ""BerberAdi""=@badi,
+                        ""Adres""=@adres,
+                        ""AcilisSaati""=@acilis,
+                        ""KapanisSaati""=@kapanis
+                    WHERE ""BerberID""=@bid;";
+
+                await using var cmd2 = new NpgsqlCommand(sqlShopUpd, conn);
                 cmd2.Parameters.AddWithValue("@badi", berberAdi);
                 cmd2.Parameters.AddWithValue("@adres", adres);
                 cmd2.Parameters.AddWithValue("@acilis", acilis);
                 cmd2.Parameters.AddWithValue("@kapanis", kapanis);
                 cmd2.Parameters.AddWithValue("@bid", _berberId);
-
                 await cmd2.ExecuteNonQueryAsync();
+
+                _ilkBerberAdi = berberAdi;
+                _ilkAdres = adres;
+                _ilkAcilis = acilisText;
+                _ilkKapanis = kapanisText;
             }
 
-            // UI güncelle
+            // UI + session
             lblAdSoyad.Text = $"{ad} {soyad}".Trim();
             lblTelefonUst.Text = tel;
+            UserSession.Ad = ad;
+            UserSession.Soyad = soyad;
 
-            // Geri al için yeni deðerleri “ilk” yap
             _ilkAd = ad;
             _ilkSoyad = soyad;
             _ilkTelefon = tel;
             _ilkEposta = eposta;
-
-            _ilkBerberAdi = berberAdi;
-            _ilkAdres = adres;
-            _ilkAcilis = acilisText;
-            _ilkKapanis = kapanisText;
-
-            // UserSession da güncellensin
-            UserSession.Ad = ad;
-            UserSession.Soyad = soyad;
 
             await DisplayAlert("Baþarýlý", "Bilgiler güncellendi.", "Tamam");
         }
@@ -270,23 +316,39 @@ public partial class BerberKisiselBilgilerSayfasi : ContentPage
         txtEposta.Text = _ilkEposta;
         txtKullaniciAdi.Text = _ilkKullaniciAdi;
 
-        txtBerberAdi.Text = _ilkBerberAdi;
-        txtAdres.Text = _ilkAdres;
-        txtAcilis.Text = _ilkAcilis;
-        txtKapanis.Text = _ilkKapanis;
-
         lblAdSoyad.Text = $"{_ilkAd} {_ilkSoyad}".Trim();
         lblTelefonUst.Text = _ilkTelefon;
 
         SetImageFromPath(imgProfil, _ilkProfilPath, "default_user.png");
 
+        if (shopCard.IsVisible)
+        {
+            txtBerberAdi.Text = _ilkBerberAdi;
+            txtAdres.Text = _ilkAdres;
+            txtAcilis.Text = _ilkAcilis;
+            txtKapanis.Text = _ilkKapanis;
+        }
+
         await DisplayAlert("Bilgi", "Deðiþiklikler geri alýndý.", "Tamam");
     }
 
     private static bool TryParseTime(string text, out TimeSpan time)
+        => TimeSpan.TryParse(text, out time);
+
+    private async Task<string> GetKullaniciTipiAsync(int kullaniciId)
     {
-        // "09:00" gibi
-        return TimeSpan.TryParse(text, out time);
+        await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+        await conn.OpenAsync();
+
+        string sql = @"SELECT COALESCE(""KullaniciTipi"", '')
+                       FROM kullanici
+                       WHERE ""ID""=@id
+                       LIMIT 1;";
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@id", kullaniciId);
+
+        return (await cmd.ExecuteScalarAsync())?.ToString() ?? "";
     }
 
     private async Task<int> GetBerberIdByKullaniciIdAsync(int kullaniciId)

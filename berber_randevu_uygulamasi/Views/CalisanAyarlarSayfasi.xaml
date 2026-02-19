@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="berber_randevu_uygulamasi.Views.CalisanAyarlarSayfasi"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
+    Title="Ayarlar"
+    BackgroundColor="#0F0F0F">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="12,14" Spacing="14">
+
+                <Label Text="Ayarlar"
+                       FontSize="26"
+                       FontAttributes="Bold"
+                       TextColor="#F2F2F2"
+                       HorizontalOptions="Center"
+                       Margin="0,6,0,6"/>
+
+                <!-- PROFİL FOTO KARTI (TEK) -->
+                <Border BackgroundColor="#1A1A1A"
+                        Stroke="#2B2B2B"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+
+                    <VerticalStackLayout Spacing="12">
+
+                        <Label Text="Profil Fotoğrafı"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="#DADADA"
+                               HorizontalOptions="Center"/>
+
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 18"
+                                HeightRequest="170"
+                                BackgroundColor="#232323">
+
+                            <Image x:Name="imgProfil"
+                                   Aspect="AspectFill"
+                                   Source="default_user.png"/>
+                        </Border>
+
+                        <Button Text="Değiştir"
+                                Clicked="ProfilFotoDegistir_Clicked"
+                                BackgroundColor="#FF8A00"
+                                TextColor="White"
+                                CornerRadius="14"
+                                HeightRequest="46"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- MENÜ -->
+                <VerticalStackLayout Spacing="10">
+
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="👤" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="Kişisel Bilgiler"
+                                   TextColor="#F2F2F2"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   Margin="10,0,0,0"/>
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   TextColor="#BDBDBD"
+                                   FontSize="22"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="KisiselBilgiler_Tapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+                  
+                    <!-- Çalışma Saatleri -->
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="🕒" 
+                                   FontSize="20" 
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="Çalışma Saatleri"
+                                   TextColor="#F2F2F2"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   Margin="10,0,0,0"/>
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   TextColor="#BDBDBD"
+                                   FontSize="22"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="CalismaSaatleri_Tapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="🔒" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="Şifreyi Değiştir"
+                                   TextColor="#F2F2F2"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   Margin="10,0,0,0"/>
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   TextColor="#BDBDBD"
+                                   FontSize="22"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="SifreDegistir_Tapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border BackgroundColor="#1A1A1A"
+                            Stroke="#2B2B2B"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="⏻" FontSize="20" VerticalOptions="Center" TextColor="#FF5A5A"/>
+                            <Label Grid.Column="1"
+                                   Text="Çıkış Yap"
+                                   TextColor="#FF5A5A"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"
+                                   Margin="10,0,0,0"/>
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="CikisYap_Tapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                </VerticalStackLayout>
+
+                <BoxView HeightRequest="10" Opacity="0"/>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ÇALIŞAN ALT BAR -->
+        <altbar:CalisanAltBar Grid.Row="1"/>
+
+    </Grid>
+</ContentPage>

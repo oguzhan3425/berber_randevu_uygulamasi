@@ -31,8 +31,7 @@
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Grid.Column="2" Spacing="6">
-                                <Button Text="Düzenle" Clicked="Duzenle_Clicked" CommandParameter="{Binding}"/>
-                                <Button Text="Aktif/Pasif" Clicked="AktifPasif_Clicked" CommandParameter="{Binding}"/>
+                                <Button Text="Çalışanı Sil" Clicked="CalisaniSil_Clicked" CommandParameter="{Binding}"/>
                             </VerticalStackLayout>
 
                             <Label Grid.Row="1" Grid.ColumnSpan="3"

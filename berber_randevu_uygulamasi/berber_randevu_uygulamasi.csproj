@@ -105,10 +105,10 @@
 	  <MauiXaml Update="Views\AltBarlar\TelefonDegistirSayfasi.xaml">
 	    <Generator></Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CalisanHizmetlerSayfasi.xaml">
+	  <MauiXaml Update="Views\CalisanAyarlarSayfasi.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CalisanProfilSayfasi.xaml">
+	  <MauiXaml Update="Views\CalisanHizmetlerSayfasi.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\CalisanRandevularSayfasi.xaml">

@@ -133,22 +133,75 @@ public partial class BerberCalisanlarSayfasi : ContentPage
         ));
     }
 
-    async void Duzenle_Clicked(object sender, EventArgs e)
+    async void CalisaniSil_Clicked(object sender, EventArgs e)
     {
-        if (sender is Button b && b.CommandParameter is CalisanKart c)
-            await DisplayAlert("Düzenle", $"{c.Ad} {c.Soyad} düzenle.", "Tamam");
-    }
+        if (sender is not Button b || b.CommandParameter is not CalisanKart c)
+            return;
 
-    void AktifPasif_Clicked(object sender, EventArgs e)
-    {
-        // Þimdilik sadece UI toggle (DB’ye yazmýyoruz)
-        if (sender is Button b && b.CommandParameter is CalisanKart c)
+        // Ýstersen sahibi/aktif kullanýcýyý silmeyi engelle
+        if (c.KullaniciID == UserSession.KullaniciId)
         {
-            c.Aktif = !c.Aktif;
+            await DisplayAlert("Uyarý", "Kendi hesabýný çalýþanlýktan çýkaramazsýn.", "Tamam");
+            return;
+        }
 
-            // Basit yenileme
-            listeCalisan.ItemsSource = null;
-            listeCalisan.ItemsSource = _veri;
+        bool ok = await DisplayAlert(
+            "Onay",
+            $"{c.Ad} {c.Soyad} çalýþanlýktan çýkarýlsýn mý?\n(Kullanýcý tipi Müþteri yapýlacak)",
+            "Evet",
+            "Vazgeç");
+
+        if (!ok) return;
+
+        try
+        {
+            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+            await conn.OpenAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            // 1) Çalýþan iliþkisini kaldýr (kullanýcý hesabý silinmez!)
+            string sqlDel = @"
+            DELETE FROM calisanlar
+            WHERE ""BerberID"" = @bid
+              AND ""KullaniciID"" = @kid;";
+
+            await using (var cmdDel = new NpgsqlCommand(sqlDel, conn, tx))
+            {
+                cmdDel.Parameters.AddWithValue("@bid", c.BerberID);     // zaten kartta var
+                cmdDel.Parameters.AddWithValue("@kid", c.KullaniciID);
+
+                int affected = await cmdDel.ExecuteNonQueryAsync();
+                if (affected == 0)
+                {
+                    await tx.RollbackAsync();
+                    await DisplayAlert("Bilgi", "Kayýt bulunamadý (zaten çýkarýlmýþ olabilir).", "Tamam");
+                    return;
+                }
+            }
+
+            // 2) Kullanýcý tipini Müþteri yap
+            string sqlUpd = @"
+            UPDATE kullanici
+            SET ""KullaniciTipi"" = @tip
+            WHERE ""ID"" = @kid;";
+
+            await using (var cmdUpd = new NpgsqlCommand(sqlUpd, conn, tx))
+            {
+                cmdUpd.Parameters.AddWithValue("@tip", "Musteri");
+                cmdUpd.Parameters.AddWithValue("@kid", c.KullaniciID);
+                await cmdUpd.ExecuteNonQueryAsync();
+            }
+
+            await tx.CommitAsync();
+
+            await DisplayAlert("Baþarýlý", "Çalýþan kaldýrýldý ve kullanýcý tipi Müþteri yapýldý.", "Tamam");
+
+            // 3) Liste yenile
+            await CalisanlariYukleAsync();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", ex.Message, "Tamam");
         }
     }
 }

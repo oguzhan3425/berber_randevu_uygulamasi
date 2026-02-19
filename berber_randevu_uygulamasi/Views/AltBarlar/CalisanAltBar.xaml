@@ -1,40 +1,47 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="berber_randevu_uygulamasi.Views.AltBarlar.CalisanAltBar"
-             BackgroundColor="Transparent">
+<ContentView
+    x:Class="berber_randevu_uygulamasi.Views.AltBarlar.CalisanAltBar"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#141414">
 
-    <Border BackgroundColor="#1A1A1A"
-            Stroke="#2B2B2B"
-            StrokeShape="RoundRectangle 18"
-            Margin="12,8"
-            Padding="10">
+    <Grid Padding="10,8" ColumnDefinitions="*,*,*,*">
 
-        <Grid ColumnDefinitions="*,*,*">
+        <!-- Panel -->
+        <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center">
+            <Label Text="🏠" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Panel" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Panel_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
 
-            <!-- Ana Sayfa -->
-            <Button Grid.Column="0"
-                    Text="🏠"
-                    FontSize="20"
-                    BackgroundColor="Transparent"
-                    TextColor="#F2F2F2"
-                    Clicked="AnaSayfa_Clicked" />
+        <!-- Randevu -->
+        <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+            <Label Text="📅" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Randevu" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Randevu_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
 
-            <!-- Randevular -->
-            <Button Grid.Column="1"
-                    Text="📋"
-                    FontSize="20"
-                    BackgroundColor="Transparent"
-                    TextColor="#F2F2F2"
-                    Clicked="Randevular_Clicked" />
+        <!-- Hizmet -->
+        <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
+            <Label Text="💰" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Hizmet" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Hizmet_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
 
-            <!-- Profil -->
-            <Button Grid.Column="2"
-                    Text="👤"
-                    FontSize="20"
-                    BackgroundColor="Transparent"
-                    TextColor="#F2F2F2"
-                    Clicked="Profil_Clicked" />
-        </Grid>
-    </Border>
+        <!-- Ayar -->
+        <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center">
+            <Label Text="⚙️" FontSize="18" HorizontalTextAlignment="Center"/>
+            <Label Text="Ayar" FontSize="11" Opacity="0.8" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="Ayar_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
+
+    </Grid>
 </ContentView>

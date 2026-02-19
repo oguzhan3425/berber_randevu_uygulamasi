@@ -1,3 +1,6 @@
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace berber_randevu_uygulamasi.Views.AltBarlar;
 
 public partial class CalisanAltBar : ContentView
@@ -7,30 +10,25 @@ public partial class CalisanAltBar : ContentView
         InitializeComponent();
     }
 
-    private async Task Navigate(Page page)
-    {
-        if (this.Window?.Page is NavigationPage nav)
-        {
-            await nav.PushAsync(page);
-        }
-        else if (this.Window?.Page != null)
-        {
-            await this.Window.Page.Navigation.PushAsync(page);
-        }
-    }
+    async void Panel_Tapped(object sender, TappedEventArgs e)
+        => await GitVeSayfayiDegistir(new CalisanAnaSayfa());
 
-    private async void AnaSayfa_Clicked(object sender, EventArgs e)
-    {
-        await Navigate(new Views.CalisanAnaSayfa());
-    }
+    async void Randevu_Tapped(object sender, TappedEventArgs e)
+        => await GitVeSayfayiDegistir(new CalisanRandevularSayfasi());
 
-    private async void Randevular_Clicked(object sender, EventArgs e)
-    {
-        await Navigate(new Views.CalisanRandevularSayfasi());
-    }
+    async void Hizmet_Tapped(object sender, TappedEventArgs e)
+        => await GitVeSayfayiDegistir(new CalisanHizmetlerSayfasi());
 
-    private async void Profil_Clicked(object sender, EventArgs e)
+    async void Ayar_Tapped(object sender, TappedEventArgs e)
+        => await GitVeSayfayiDegistir(new CalisanAyarlarSayfasi());
+
+    static async Task GitVeSayfayiDegistir(Page hedefSayfa)
     {
-        await Navigate(new Views.CalisanProfilSayfasi());
+        var mevcut = Application.Current?.Windows[0].Page?.Navigation?.NavigationStack?.LastOrDefault();
+        if (mevcut?.GetType() == hedefSayfa.GetType())
+            return;
+
+        Application.Current!.Windows[0].Page = new NavigationPage(hedefSayfa);
+        await Task.CompletedTask;
     }
 }

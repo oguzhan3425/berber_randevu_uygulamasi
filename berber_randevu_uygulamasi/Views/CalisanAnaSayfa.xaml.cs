@@ -1,74 +1,148 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Npgsql;
-using System.Collections.ObjectModel;
-using berber_randevu_uygulamasi.Models;
+using berber_randevu_uygulamasi.Services;
+using berber_randevu_uygulamasi.Views.AltBarlar;
 
 namespace berber_randevu_uygulamasi.Views;
 
 public partial class CalisanAnaSayfa : ContentPage
 {
-    // ÖNEMLÝ: Giriþte belirlediðin çalýþan id’yi buraya set et.
-    // Sen daha önce yönlendirmeyi yaptým dediðin için:
-    // App.Current.Properties / Preferences / static Session gibi nerede tutuyorsan oradan okuyabilirsin.
-    private readonly int _calisanId;
-
-    public ObservableCollection<RandevuKart> BugunRandevular { get; } = new();
-
-    public int BugunRandevuSayisi { get; set; }
-    public decimal BugunKazanc { get; set; }
-    
-
-    public RandevuKart? SiradakiRandevu { get; set; }
-
-    // Üst þerit alanlarý (CalisanKart’tan da besleyebilirsin)
-    public string? Foto { get; set; }
-    public string? AdSoyad { get; set; }
-    public string? Uzmanlik { get; set; }
-    public string DurumText { get; set; } = "Aktif";
-
-    public CalisanAnaSayfa(int calisanId = 0)
+    public CalisanAnaSayfa()
     {
         InitializeComponent();
 
-        _calisanId = calisanId;
-
-        // Binding kaynak: sayfanýn kendisi
-        BindingContext = this;
+        // Ýlk açýlýþta default görünsün
+        imgCalisanFoto.Source = "default_user.png";
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await LoadDashboardAsync();
+
+        // Üst: çalýþan ad-soyad
+        var adSoyad = $"{UserSession.Ad} {UserSession.Soyad}".Trim();
+        lblCalisanAdSoyad.Text = string.IsNullOrWhiteSpace(adSoyad) ? "—" : adSoyad;
+
+        // Üst: çalýþan foto
+        await CalisanFotosuYukleAsync();
+
+        // Bugün özet (çalýþanýn randevularý)
+        await BugunOzetYukleAsync();
     }
 
-    private async Task LoadDashboardAsync()
+    private async Task CalisanFotosuYukleAsync()
     {
         try
         {
-            // 1) Profil / çalýþan bilgisi (Foto, AdSoyad, Uzmanlik, DurumText)
-            await LoadCalisanInfoAsync();
+            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+            await conn.OpenAsync();
 
-            // 2) Bugünkü randevular (RandevuKart listesi)
-            await LoadBugunRandevularAsync();
+            string sql = @"
+            SELECT ""ProfilFoto""
+            FROM kullanici
+            WHERE ""ID"" = @kid
+            LIMIT 1;";
 
-            // 3) Özet hesapla
-            BugunRandevuSayisi = BugunRandevular.Count;
-            BugunKazanc = BugunRandevular.Sum(x => x.ToplamUcret);
-            
+            await using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@kid", UserSession.KullaniciId);
 
-            // 4) Sýradaki randevu
-            SiradakiRandevu = BugunRandevular
-                
-                .FirstOrDefault();
+            var obj = await cmd.ExecuteScalarAsync();
+            var s = obj?.ToString()?.Trim();
 
-            // UI güncelle
-            OnPropertyChanged(nameof(BugunRandevuSayisi));
-            OnPropertyChanged(nameof(BugunKazanc));
-            OnPropertyChanged(nameof(SiradakiRandevu));
-            OnPropertyChanged(nameof(Foto));
-            OnPropertyChanged(nameof(AdSoyad));
-            OnPropertyChanged(nameof(Uzmanlik));
-            OnPropertyChanged(nameof(DurumText));
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                imgCalisanFoto.Source = "default_user.png";
+                return;
+            }
+
+            // URL ise
+            if (Uri.TryCreate(s, UriKind.Absolute, out var uri) &&
+                (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            {
+                imgCalisanFoto.Source = new UriImageSource
+                {
+                    Uri = uri,
+                    CachingEnabled = true
+                };
+                return;
+            }
+
+            // Deðilse uygulama içi dosya adý / local path gibi davran
+            imgCalisanFoto.Source = ImageSource.FromFile(s);
+        }
+        catch
+        {
+            imgCalisanFoto.Source = "default_user.png";
+        }
+    }
+
+    private async Task BugunOzetYukleAsync()
+    {
+        try
+        {
+            int calisanId = await GetCalisanIdByKullaniciIdAsync(UserSession.KullaniciId);
+            int berberId = await GetBerberIdByCalisanKullaniciIdAsync(UserSession.KullaniciId);
+
+            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+            await conn.OpenAsync();
+
+            var bugun = DateOnly.FromDateTime(DateTime.Now);
+
+            // Bugünkü randevu sayýsý (çalýþana göre)
+            string sqlCount = @"
+                SELECT COUNT(*)
+                FROM randevular r
+                WHERE r.""BerberID"" = @bid
+                  AND r.""CalisanID"" = @cid
+                  AND r.""RandevuTarihi"" = @tarih;";
+
+            await using (var cmdCount = new NpgsqlCommand(sqlCount, conn))
+            {
+                cmdCount.Parameters.AddWithValue("@bid", berberId);
+                cmdCount.Parameters.AddWithValue("@cid", calisanId);
+                cmdCount.Parameters.AddWithValue("@tarih", bugun);
+
+                var count = Convert.ToInt32(await cmdCount.ExecuteScalarAsync());
+                lblBugunRandevu.Text = count.ToString();
+            }
+
+            // Sýradaki randevu (çalýþana göre)
+            string sqlNext = @"
+                SELECT k.""Ad"", k.""Soyad"", r.""RandevuSaati""
+                FROM randevular r
+                JOIN kullanici k ON k.""ID"" = r.""KullaniciID""
+                WHERE r.""BerberID"" = @bid
+                  AND r.""CalisanID"" = @cid
+                  AND r.""RandevuTarihi"" = @tarih
+                  AND r.""RandevuSaati"" >= @simdi
+                ORDER BY r.""RandevuSaati""
+                LIMIT 1;";
+
+            await using (var cmdNext = new NpgsqlCommand(sqlNext, conn))
+            {
+                cmdNext.Parameters.AddWithValue("@bid", berberId);
+                cmdNext.Parameters.AddWithValue("@cid", calisanId);
+                cmdNext.Parameters.AddWithValue("@tarih", bugun);
+                cmdNext.Parameters.AddWithValue("@simdi", TimeOnly.FromDateTime(DateTime.Now));
+
+                await using var dr = await cmdNext.ExecuteReaderAsync();
+                if (await dr.ReadAsync())
+                {
+                    string ad = dr.IsDBNull(0) ? "" : dr.GetString(0);
+                    string soyad = dr.IsDBNull(1) ? "" : dr.GetString(1);
+                    var saat = dr.IsDBNull(2) ? (TimeSpan?)null : dr.GetTimeSpan(2);
+
+                    lblSiradakiIsim.Text = $"{ad} {soyad}".Trim();
+                    lblSiradakiSaat.Text = saat.HasValue ? saat.Value.ToString(@"hh\:mm") : "—";
+                }
+                else
+                {
+                    lblSiradakiIsim.Text = "—";
+                    lblSiradakiSaat.Text = "—";
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -76,57 +150,55 @@ public partial class CalisanAnaSayfa : ContentPage
         }
     }
 
-    private Task LoadCalisanInfoAsync()
+    private async Task<int> GetCalisanIdByKullaniciIdAsync(int kullaniciId)
     {
-        // TODO: Buraya kendi DB sorgunu koy:
-        // CalisanKart tablosundan _calisanId’ye göre Ad, Soyad, Uzmanlik, Foto, Durum/Aktif vs.
+        await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+        await conn.OpenAsync();
 
-        // Geçici örnek:
-        Foto = "user.png";
-        AdSoyad = "Çalýþan";
-        Uzmanlik = "Berber";
-        DurumText = "Aktif";
+        string sql = @"
+            SELECT ""CalisanID""
+            FROM calisanlar
+            WHERE ""KullaniciID"" = @kid
+            LIMIT 1;";
 
-        return Task.CompletedTask;
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@kid", kullaniciId);
+
+        var obj = await cmd.ExecuteScalarAsync();
+        if (obj == null)
+            throw new Exception("Bu kullanýcý için calisanlar kaydý yok. (Çalýþan kaydý oluþturulmamýþ olabilir.)");
+
+        return Convert.ToInt32(obj);
     }
 
-    private Task LoadBugunRandevularAsync()
+    private async Task<int> GetBerberIdByCalisanKullaniciIdAsync(int kullaniciId)
     {
-        // TODO: Buraya kendi DB sorgunu koy:
-        // Bugünün randevularý: Randevu + Hizmet + Kullanici join
-        // Sonuçlarý RandevuKart’a map et.
+        await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
+        await conn.OpenAsync();
 
-        BugunRandevular.Clear();
+        // Varsayým: calisanlar tablosunda "BerberID" var
+        string sql = @"
+            SELECT ""BerberID""
+            FROM calisanlar
+            WHERE ""KullaniciID"" = @kid
+            LIMIT 1;";
 
-        // Geçici örnek:
-        BugunRandevular.Add(new RandevuKart
-        {
-            RandevuID = 1,
-            SaatText = "12:30",
-            TarihText = DateTime.Today.ToString("dd.MM.yyyy"),
-            MusteriAdSoyad = "Müþteri 1",
-            HizmetAdi = "Saç Kesim",
-            ToplamUcret = 300,
-            DurumText = "Bekliyor"
-        });
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@kid", kullaniciId);
 
-        BugunRandevular.Add(new RandevuKart
-        {
-            RandevuID = 2,
-            SaatText = "13:15",
-            TarihText = DateTime.Today.ToString("dd.MM.yyyy"),
-            MusteriAdSoyad = "Müþteri 2",
-            HizmetAdi = "Sakal",
-            ToplamUcret = 200,
-            DurumText = "Bekliyor"
-        });
+        var obj = await cmd.ExecuteScalarAsync();
+        if (obj == null)
+            throw new Exception("Bu kullanýcý için BerberID bulunamadý (calisanlar.BerberID boþ olabilir).");
 
-        OnPropertyChanged(nameof(BugunRandevular));
-        return Task.CompletedTask;
+        return Convert.ToInt32(obj);
     }
 
-    private async void TumRandevular_Clicked(object sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new CalisanRandevularSayfasi());
+    // Kart týklamalarý
+    private async void BugunRandevular_Tapped(object sender, TappedEventArgs e)
+        => await Navigation.PushAsync(new CalisanRandevularSayfasi()); // sende isim farklýysa deðiþtir
+
+    private async void CalismaSaatleri_Tapped(object sender, TappedEventArgs e)
+    { 
+         await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi()); // sende isim farklýysa deðiþtir
     }
 }

@@ -5,6 +5,7 @@
              xmlns:altbar="clr-namespace:berber_randevu_uygulamasi.Views.AltBarlar"
              Title="Kişisel Bilgiler"
              BackgroundColor="#0F0F0F">
+
     <Grid RowDefinitions="*,Auto">
 
         <!-- İÇERİK -->
@@ -39,18 +40,18 @@
                         <!-- Bilgiler -->
                         <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
                             <Label x:Name="lblAdSoyad"
-                                   Text="Oğuzhan Aydın"
+                                   Text="—"
                                    FontSize="20"
                                    FontAttributes="Bold"
                                    TextColor="#F2F2F2"/>
 
                             <Label x:Name="lblRol"
-                                   Text="Rol: Sahip"
+                                   Text="Rol: —"
                                    FontSize="13"
                                    TextColor="#BDBDBD"/>
 
                             <Label x:Name="lblTelefonUst"
-                                   Text="+90 531 123 45 67"
+                                   Text="—"
                                    FontSize="13"
                                    TextColor="#BDBDBD"/>
                         </VerticalStackLayout>
@@ -124,11 +125,13 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- DÜKKAN BİLGİLERİ (Telefon yok) -->
-                <Border BackgroundColor="#1A1A1A"
+                <!-- DÜKKAN BİLGİLERİ (SADECE BERBER/Sahip GÖRSÜN) -->
+                <Border x:Name="shopCard"
+                        BackgroundColor="#1A1A1A"
                         Stroke="#2B2B2B"
                         StrokeShape="RoundRectangle 18"
-                        Padding="14">
+                        Padding="14"
+                        IsVisible="True">
 
                     <VerticalStackLayout Spacing="12">
                         <Label Text="Dükkan Bilgileri"
@@ -194,14 +197,15 @@
                             HeightRequest="48"/>
                 </Grid>
 
-                <!-- Alt bar üstü boşluk -->
                 <BoxView HeightRequest="10" Opacity="0"/>
-
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- ALT BAR -->
-        <altbar:BerberAltBar Grid.Row="1"/>
+        <!-- ALT BAR (opsiyonel) -->
+        <Grid Grid.Row="1" x:Name="BottomBarHost" IsVisible="False">
+            <altbar:BerberAltBar x:Name="barBerber" IsVisible="False"/>
+            <altbar:CalisanAltBar x:Name="barCalisan" IsVisible="False"/>
+        </Grid>
 
     </Grid>
 </ContentPage>

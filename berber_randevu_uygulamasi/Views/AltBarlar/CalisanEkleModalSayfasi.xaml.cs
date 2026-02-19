@@ -86,6 +86,7 @@ namespace berber_randevu_uygulamasi.Views
             {
                 await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
                 await conn.OpenAsync();
+                await using var tx = await conn.BeginTransactionAsync();
 
                 // 1) Bu kullanýcý zaten bir berbere baðlý mý kontrol et
                 string sqlCheck = @"
@@ -94,36 +95,55 @@ namespace berber_randevu_uygulamasi.Views
                     WHERE ""KullaniciID"" = @kid
                     LIMIT 1;";
 
-                await using (var cmdCheck = new NpgsqlCommand(sqlCheck, conn))
+                await using (var cmdCheck = new NpgsqlCommand(sqlCheck, conn, tx))
                 {
                     cmdCheck.Parameters.AddWithValue("@kid", _bulunanKullaniciId);
                     var existing = await cmdCheck.ExecuteScalarAsync();
 
-                    if (existing != null)
+                    if (existing != null && existing != DBNull.Value)
                     {
                         int existingBerberId = Convert.ToInt32(existing);
+
                         if (existingBerberId == _berberId)
                         {
+                            await tx.RollbackAsync();
                             await DisplayAlert("Bilgi", "Bu kullanýcý zaten senin çalýþanýnda kayýtlý.", "Tamam");
                             return;
                         }
 
-                        await DisplayAlert("Uyarý", "Bu kullanýcý zaten hizmet vermektedir.", "Tamam");
+                        await tx.RollbackAsync();
+                        await DisplayAlert("Uyarý", "Bu kullanýcý zaten baþka bir berberde çalýþýyor.", "Tamam");
                         return;
                     }
                 }
 
-                // 2) Ekle
+                // 2) calisanlar'a ekle
                 string sqlInsert = @"
                     INSERT INTO calisanlar (""KullaniciID"", ""BerberID"")
                     VALUES (@kid, @bid);";
 
-                await using (var cmdIns = new NpgsqlCommand(sqlInsert, conn))
+                await using (var cmdIns = new NpgsqlCommand(sqlInsert, conn, tx))
                 {
                     cmdIns.Parameters.AddWithValue("@kid", _bulunanKullaniciId);
                     cmdIns.Parameters.AddWithValue("@bid", _berberId);
                     await cmdIns.ExecuteNonQueryAsync();
                 }
+
+                // 3) kullanici tipini çalýþan yap
+                // (Bu kolonu senin DB'de gördük: "KullaniciTipi")
+                string sqlUpdateTip = @"
+                    UPDATE kullanici
+                    SET ""KullaniciTipi"" = @tip
+                    WHERE ""ID"" = @kid;";
+
+                await using (var cmdUpd = new NpgsqlCommand(sqlUpdateTip, conn, tx))
+                {
+                    cmdUpd.Parameters.AddWithValue("@tip", "Calisan");
+                    cmdUpd.Parameters.AddWithValue("@kid", _bulunanKullaniciId);
+                    await cmdUpd.ExecuteNonQueryAsync();
+                }
+
+                await tx.CommitAsync();
 
                 await DisplayAlert("Baþarýlý", "Çalýþan eklendi.", "Tamam");
 
@@ -134,7 +154,7 @@ namespace berber_randevu_uygulamasi.Views
             }
             catch (PostgresException pex) when (pex.SqlState == "23505")
             {
-                // uq_calisanlar_kullanici UNIQUE hatasý
+                // UNIQUE hatasý (ayný kullanýcý tekrar eklenirse)
                 await DisplayAlert("Uyarý", "Bu kullanýcý zaten hizmet vermektedir.", "Tamam");
             }
             catch (Exception ex)
