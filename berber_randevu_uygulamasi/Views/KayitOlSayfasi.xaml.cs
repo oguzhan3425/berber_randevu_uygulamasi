@@ -24,6 +24,17 @@ namespace berber_randevu_uygulamasi.Views
 
             Telefon = new string(Telefon.Where(char.IsDigit).ToArray());
 
+            Telefon = new string(Telefon.Where(char.IsDigit).ToArray());
+
+            // ✅ Telefon kontrolü
+            if (Telefon.Length != 11 || !Telefon.StartsWith("05"))
+            {
+                await DisplayAlert("Geçersiz Telefon",
+                    "Telefon numarası 05 ile başlamalı ve 11 haneli olmalıdır. (Örn: 05xx xxx xx xx)",
+                    "Tamam");
+                return;
+            }
+
             // Boş alan kontrolü
             if (string.IsNullOrWhiteSpace(Ad) ||
                 string.IsNullOrWhiteSpace(Soyad) ||
@@ -34,6 +45,14 @@ namespace berber_randevu_uygulamasi.Views
 
             {
                 await DisplayAlert("Uyarı", "Lütfen tüm alanları doldurunuz.", "Tamam");
+                return;
+            }
+            // ✅ Mail uzantı kontrolü
+            if (!(Eposta.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+                  Eposta.EndsWith("@hotmail.com", StringComparison.OrdinalIgnoreCase) ||
+                  Eposta.EndsWith("@icloud.com", StringComparison.OrdinalIgnoreCase)))
+            {
+                await DisplayAlert("Geçersiz E-posta", "Lütfen geçerli bir eposta adresi giriniz.", "Tamam");
                 return;
             }
 

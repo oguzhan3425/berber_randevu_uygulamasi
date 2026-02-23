@@ -220,8 +220,7 @@
                 <Border BackgroundColor="#1A1A1A"
                         Stroke="#2B2B2B"
                         StrokeShape="RoundRectangle 18"
-                        Padding="14"
-                        Opacity="0.7">
+                        Padding="14">
                     <VerticalStackLayout Spacing="10">
 
                         <Grid ColumnDefinitions="*,Auto">
@@ -231,10 +230,10 @@
                                    TextColor="#F2F2F2"/>
                             <Switch x:Name="swPaz"
                                     Grid.Column="1"
-                                    IsToggled="False"/>
+                                    IsToggled="True"/>
                         </Grid>
 
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" IsEnabled="False">
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" IsEnabled="True">
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Açılış" FontSize="12" TextColor="#BDBDBD"/>
                                 <Entry x:Name="txtPazAcilis"

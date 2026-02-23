@@ -9,9 +9,10 @@
         public int CalisanID { get; set; }
         public int HizmetID { get; set; }
         public DateTime RandevuTarihi { get; set; }
-        public int RandevuSaati { get; set; }
+        public TimeSpan RandevuSaati { get; set; }
         public int SureDakika { get; set; }
         public decimal ToplamUcret { get; set; }
         public string MusteriFoto { get; set; } = "default_berber.png";
+        public int RandevuAraligi { get; set; } // Yeni alan: Randevu aralığı (dakika cinsinden)
     }
 }

@@ -11,7 +11,7 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
         <Grid Padding="12,10" ColumnDefinitions="*,Auto">
-            <Label Text="Çalışanlar" FontSize="20" FontAttributes="Bold" TextColor="#F2F2F2"/>
+            <Label Text="Çalışan Ekle" FontSize="20" FontAttributes="Bold" TextColor="#F2F2F2"/>
             <Button Grid.Column="1" Text="＋" Clicked="Ekle_Clicked"/>
         </Grid>
 
@@ -31,7 +31,8 @@
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Grid.Column="2" Spacing="6">
-                                <Button Text="Çalışanı Sil" Clicked="CalisaniSil_Clicked" CommandParameter="{Binding}"/>
+                                <Button Text="Çalışanı Sil" Clicked="CalisaniSil_Clicked" CommandParameter="{Binding}"
+                                        BackgroundColor="Red"/>
                             </VerticalStackLayout>
 
                             <Label Grid.Row="1" Grid.ColumnSpan="3"

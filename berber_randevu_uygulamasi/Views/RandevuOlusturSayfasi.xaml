@@ -4,6 +4,8 @@
     x:Class="berber_randevu_uygulamasi.Views.RandevuOlusturSayfasi"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:berber_randevu_uygulamasi.Views"
+    x:DataType="local:RandevuOlusturVM"
     Title="Randevu Oluştur"
     BackgroundColor="#0F0F0F">
 
@@ -62,45 +64,73 @@
                     </Grid>
                 </Border>
 
-                <!-- BOŞ SAATLER -->
-                <Label Text="Boş Saatler"
+                <!-- TARİH SEÇİMİ -->
+                <Label Text="Randevu Tarihi"
                        FontSize="16"
                        FontAttributes="Bold"
                        TextColor="#F2F2F2"
                        Margin="2,6,0,0"/>
 
-                <CollectionView ItemsSource="{Binding Saatler}"
-                                SelectionMode="None">
-                    <CollectionView.ItemsLayout>
-                        <GridItemsLayout Span="3" Orientation="Vertical" />
-                    </CollectionView.ItemsLayout>
+                <Border Stroke="#262626"
+                        StrokeThickness="1"
+                        BackgroundColor="#151515"
+                        Padding="12">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="18" />
+                    </Border.StrokeShape>
 
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Border Padding="12,10"
-                                    Margin="4"
-                                    BackgroundColor="{Binding KartRenk}"
-                                    Stroke="#262626"
-                                    StrokeThickness="1">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="16"/>
-                                </Border.StrokeShape>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                        <Label Text="Tarih"
+                               TextColor="#BDBDBD"
+                               VerticalOptions="Center"/>
 
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer
-                                        Command="{Binding BindingContext.SaatSecCommand, Source={x:Reference Name=Sayfa}}"
-                                        CommandParameter="{Binding .}" />
-                                </Border.GestureRecognizers>
+                        <DatePicker x:Name="dateTarih"
+                                    Grid.Column="1"
+                                    TextColor="#F2F2F2"
+                                    BackgroundColor="#111111"
+                                    DateSelected="dateTarih_DateSelected"/>
+                    </Grid>
+                </Border>
 
-                                <Label Text="{Binding Saat}"
-                                       HorizontalOptions="Center"
-                                       TextColor="{Binding YaziRenk}"
-                                       FontSize="16"
-                                       FontAttributes="Bold"/>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                <!-- SAAT / DAKİKA SEÇİMİ -->
+                <Label Text="Randevu Saati"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#F2F2F2"
+                       Margin="2,6,0,0"/>
+
+                <Border Stroke="#262626"
+                        StrokeThickness="1"
+                        BackgroundColor="#151515"
+                        Padding="12">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="18" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <!-- Saat Picker -->
+                            <Picker x:Name="pickerSaat"
+                                    Grid.Column="0"
+                                    Title="Saat"
+                                    TextColor="#F2F2F2"
+                                    BackgroundColor="#111111"/>
+
+                            <!-- Dakika Picker -->
+                            <Picker x:Name="pickerDakika"
+                                    Grid.Column="1"
+                                    Title="Dakika (5 dk)"
+                                    TextColor="#F2F2F2"
+                                    BackgroundColor="#111111"/>
+                        </Grid>
+
+                        <Label x:Name="lblSecimOzeti"
+                               Text=""
+                               FontSize="12"
+                               TextColor="#8E8E8E" />
+                    </VerticalStackLayout>
+                </Border>
 
                 <!-- HİZMET SEÇİMİ -->
                 <Label Text="Hizmet Seçimi"
@@ -113,7 +143,7 @@
                                 SelectionMode="None">
 
                     <CollectionView.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="local:HizmetItem">
                             <Border Margin="0,6"
                                     Padding="12"
                                     BackgroundColor="{Binding KartRenk}"
@@ -124,9 +154,8 @@
                                 </Border.StrokeShape>
 
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer
-                                        Command="{Binding BindingContext.HizmetToggleCommand, Source={x:Reference Name=Sayfa}}"
-                                        CommandParameter="{Binding .}" />
+                                    <TapGestureRecognizer Tapped="Hizmet_Tapped"
+                      CommandParameter="{Binding .}" />
                                 </Border.GestureRecognizers>
 
                                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
@@ -143,12 +172,17 @@
                                                FontAttributes="Bold"/>
                                     </Border>
 
-                                    <!-- ad -->
-                                    <Label Grid.Column="1"
-                                           Text="{Binding Ad}"
-                                           FontSize="15"
-                                           TextColor="#F2F2F2"
-                                           VerticalOptions="Center" />
+                                    <!-- ad + süre -->
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                        <Label Text="{Binding Ad}"
+                                               FontSize="15"
+                                               TextColor="#F2F2F2"
+                                               VerticalOptions="Center" />
+                                        <Label Text="{Binding SureDakika, StringFormat='{0} dk'}"
+                                               FontSize="12"
+                                               TextColor="#8E8E8E"
+                                               VerticalOptions="Center" />
+                                    </VerticalStackLayout>
 
                                     <!-- fiyat -->
                                     <Label Grid.Column="2"

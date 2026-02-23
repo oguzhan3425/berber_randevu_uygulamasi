@@ -108,11 +108,6 @@ namespace berber_randevu_uygulamasi.Views
             await cmd.ExecuteNonQueryAsync();
         }
 
-        private async void DirektBerber_Clicked(object sender, EventArgs e)
-        {
-            await Navigation.PushAsync(new BerberAnaPanelSayfasi());
-        }
-
         private async void KayitOl_Tapped(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new KayitOlSayfasi());

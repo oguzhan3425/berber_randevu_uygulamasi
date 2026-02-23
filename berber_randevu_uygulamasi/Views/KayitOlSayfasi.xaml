@@ -1,95 +1,97 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="berber_randevu_uygulamasi.Views.KayitOlSayfasi"
-             BackgroundColor="#E5E2DA"
+             BackgroundColor="#0F0F0F"
              Title="Kayıt Ol">
 
     <ScrollView>
-        <VerticalStackLayout Padding="40,100"
+        <VerticalStackLayout Padding="20,80"
                              Spacing="25"
                              VerticalOptions="Center"
                              HorizontalOptions="Center">
 
-            <!-- Kart görünümü -->
-            <Border BackgroundColor="White"
-                   StrokeShape="25"
-                   StrokeThickness="0"
-                   Padding="40"
-                   WidthRequest="300">
+            <!-- Kart -->
+            <Border BackgroundColor="#1A1A1A"
+                    Stroke="#2B2B2B"
+                    StrokeShape="RoundRectangle 20"
+                    Padding="25"
+                    WidthRequest="330">
 
-                <VerticalStackLayout Spacing="20">
+                <VerticalStackLayout Spacing="18">
 
                     <!-- Başlık -->
                     <Label Text="Kayıt Ol"
-                           FontSize="28"
+                           FontSize="26"
                            FontAttributes="Bold"
                            HorizontalOptions="Center"
-                           TextColor="#2C2B20" />
+                           TextColor="#F2F2F2" />
 
                     <!-- Ad -->
                     <Entry x:Name="AdEntry"
                            Placeholder="Ad"
-                           TextColor="#2C2B20"
-                           PlaceholderColor="#999"
-                           FontSize="16" />
+                           TextColor="#F2F2F2"
+                           PlaceholderColor="#777"
+                           BackgroundColor="#232323"
+                           HeightRequest="45" />
 
                     <!-- Soyad -->
                     <Entry x:Name="SoyadEntry"
                            Placeholder="Soyad"
-                           TextColor="#2C2B20"
-                           PlaceholderColor="#999"
-                           FontSize="16" />
+                           TextColor="#F2F2F2"
+                           PlaceholderColor="#777"
+                           BackgroundColor="#232323"
+                           HeightRequest="45" />
 
                     <!-- Kullanıcı Adı -->
                     <Entry x:Name="KullaniciAdiEntry"
                            Placeholder="Kullanıcı Adı"
-                           TextColor="#2C2B20"
-                           PlaceholderColor="#999"
-                           FontSize="16" />
+                           TextColor="#F2F2F2"
+                           PlaceholderColor="#777"
+                           BackgroundColor="#232323"
+                           HeightRequest="45" />
 
                     <!-- E-posta -->
                     <Entry x:Name="EmailEntry"
                            Placeholder="E-posta"
-                           TextColor="#2C2B20"
-                           PlaceholderColor="#999"
                            Keyboard="Email"
-                           FontSize="16" />
+                           TextColor="#F2F2F2"
+                           PlaceholderColor="#777"
+                           BackgroundColor="#232323"
+                           HeightRequest="45" />
 
                     <!-- Şifre -->
                     <Entry x:Name="SifreEntry"
                            Placeholder="Şifre"
                            IsPassword="True"
-                           TextColor="#2C2B20"
-                           PlaceholderColor="#999"
-                           FontSize="16" />
-             
-                    <!--Telefon-->
+                           TextColor="#F2F2F2"
+                           PlaceholderColor="#777"
+                           BackgroundColor="#232323"
+                           HeightRequest="45" />
+
+                    <!-- Telefon -->
                     <Entry x:Name="TelefonEntry"
                            Placeholder="Telefon (05xx xxx xx xx)"
                            Keyboard="Telephone"
                            MaxLength="20"
-                           FontSize="18"
-                           HeightRequest="50"
-                           BackgroundColor="White"
-                           TextColor="Black"
-                           PlaceholderColor="#8C8C8C"
-                           WidthRequest="250"/>
+                           TextColor="#F2F2F2"
+                           PlaceholderColor="#777"
+                           BackgroundColor="#232323"
+                           HeightRequest="45" />
 
                     <!-- Kayıt Ol Butonu -->
                     <Button Text="Kayıt Ol"
-                            BackgroundColor="#3A3A1F"
+                            BackgroundColor="#FF8A00"
                             TextColor="White"
                             FontAttributes="Bold"
                             CornerRadius="20"
                             HeightRequest="45"
-                            Clicked="KayitOl_Clicked" />
+                            Clicked="KayitOl_Clicked"/>
 
-                    <!-- Giriş Yap bağlantısı -->
-                    <Label Text="Giriş Yap"
-                           FontAttributes="Bold"
-                           FontSize="16"
+                    <!-- Giriş Yap -->
+                    <Label Text="Zaten hesabın var mı? Giriş Yap"
+                           FontSize="14"
                            HorizontalOptions="Center"
-                           TextColor="#2C2B20">
+                           TextColor="#AAAAAA">
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Tapped="GirisYap_Tapped"/>
                         </Label.GestureRecognizers>

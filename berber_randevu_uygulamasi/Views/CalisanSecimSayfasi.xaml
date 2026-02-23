@@ -3,6 +3,7 @@
     x:Class="berber_randevu_uygulamasi.Views.CalisanSecimSayfasi"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:berber_randevu_uygulamasi.Models"
     Title="Çalışan Seç"
     BackgroundColor="#0F0F0F">
 
@@ -41,7 +42,7 @@
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="models:CalisanKart">
                     <Border Stroke="#262626"
                             StrokeThickness="1"
                             BackgroundColor="#151515"
@@ -82,12 +83,6 @@
                                 <Label Text="{Binding Soyad}"
                                        FontSize="13"
                                        TextColor="#BDBDBD" />
-                                <!-- Uzmanlık/Deneyim kullanıyorsan aç -->
-                                <!--
-                                <Label Text="{Binding Uzmanlik}"
-                                       FontSize="12"
-                                       TextColor="#8E8E8E" />
-                                -->
                             </VerticalStackLayout>
 
                             <!-- Sağ ok -->
@@ -102,9 +97,6 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-
-        <!-- ALT BAR varsa buraya eklersin -->
-        <!-- <altbar:AltBar Grid.Row="2" /> -->
 
     </Grid>
 </ContentPage>
