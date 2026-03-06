@@ -9,12 +9,14 @@ namespace berber_randevu_uygulamasi.Views;
 
 public partial class CalisanAnaSayfa : ContentPage
 {
-    public CalisanAnaSayfa()
+    protected readonly ApiClient _api;
+    public CalisanAnaSayfa(ApiClient api)
     {
         InitializeComponent();
 
         // Ýlk açýlýþta default görünsün
         imgCalisanFoto.Source = "default_user.png";
+        _api = api;
     }
 
     protected override async void OnAppearing()
@@ -195,10 +197,10 @@ public partial class CalisanAnaSayfa : ContentPage
 
     // Kart týklamalarý
     private async void BugunRandevular_Tapped(object sender, TappedEventArgs e)
-        => await Navigation.PushAsync(new CalisanRandevularSayfasi()); // sende isim farklýysa deðiþtir
+        => await Navigation.PushAsync(new CalisanRandevularSayfasi(_api)); // sende isim farklýysa deðiþtir
 
     private async void CalismaSaatleri_Tapped(object sender, TappedEventArgs e)
     { 
-         await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi()); // sende isim farklýysa deðiþtir
+         await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi(_api)); // sende isim farklýysa deðiþtir
     }
 }

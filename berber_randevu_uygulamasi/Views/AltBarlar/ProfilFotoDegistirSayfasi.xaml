@@ -8,7 +8,7 @@
 
     <Grid VerticalOptions="Center" HorizontalOptions="Center">
         <VerticalStackLayout Spacing="22" HorizontalOptions="Center">
-
+            
             <Button Text="📷  Kamerayı Aç"
                     WidthRequest="240" HeightRequest="120"
                     BackgroundColor="#FF8A00"

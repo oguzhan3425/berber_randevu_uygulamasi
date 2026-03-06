@@ -9,10 +9,11 @@ namespace berber_randevu_uygulamasi.Views;
 
 public partial class BerberAnaPanelSayfasi : ContentPage
 {
-    public BerberAnaPanelSayfasi()
+    protected readonly ApiClient _api;
+    public BerberAnaPanelSayfasi(ApiClient api)
     {
         InitializeComponent();
-
+        _api = api;
         // Ýlk açýlýþta default görünsün
         imgSahipFoto.Source = "default_user.png";
     }
@@ -155,10 +156,10 @@ public partial class BerberAnaPanelSayfasi : ContentPage
     }
 
     private async void BugunRandevular_Tapped(object sender, TappedEventArgs e)
-        => await Navigation.PushAsync(new BerberRandevularSayfasi());
+        => await Navigation.PushAsync(new BerberRandevularSayfasi(_api));
 
     private async void CalismaSaatleri_Tapped(object sender, TappedEventArgs e)
     {
-        await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi());
+        await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi(_api));
     }
 }

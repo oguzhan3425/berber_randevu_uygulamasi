@@ -1,28 +1,29 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.Maui.Controls;
-using Npgsql;
-using berber_randevu_uygulamasi.Services; // DbConfig burada değilse namespace'i düzelt
+using berber_randevu_uygulamasi.Services;
+using berber_randevu_uygulamasi.Models.Dtos;
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class KayitOlSayfasi : ContentPage
     {
-        public KayitOlSayfasi()
+        protected readonly ApiClient _api;
+
+        public KayitOlSayfasi(ApiClient api)
         {
             InitializeComponent();
+            _api = api;
         }
 
         private async void KayitOl_Clicked(object sender, EventArgs e)
         {
-            // Form alanlarını oku
             string Ad = AdEntry.Text?.Trim() ?? "";
             string Soyad = SoyadEntry.Text?.Trim() ?? "";
             string KullaniciAdi = KullaniciAdiEntry.Text?.Trim() ?? "";
             string Eposta = EmailEntry.Text?.Trim() ?? "";
             string Sifre = SifreEntry.Text ?? "";
             string Telefon = TelefonEntry.Text?.Trim() ?? "";
-
-            Telefon = new string(Telefon.Where(char.IsDigit).ToArray());
 
             Telefon = new string(Telefon.Where(char.IsDigit).ToArray());
 
@@ -42,11 +43,11 @@ namespace berber_randevu_uygulamasi.Views
                 string.IsNullOrWhiteSpace(Eposta) ||
                 string.IsNullOrWhiteSpace(Sifre) ||
                 string.IsNullOrWhiteSpace(Telefon))
-
             {
                 await DisplayAlert("Uyarı", "Lütfen tüm alanları doldurunuz.", "Tamam");
                 return;
             }
+
             // ✅ Mail uzantı kontrolü
             if (!(Eposta.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase) ||
                   Eposta.EndsWith("@hotmail.com", StringComparison.OrdinalIgnoreCase) ||
@@ -58,49 +59,42 @@ namespace berber_randevu_uygulamasi.Views
 
             try
             {
-                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-                await conn.OpenAsync();
-
-                // Not: Eğer KullaniciTipi kolonu NOT NULL ise burada da göndermen gerekir.
-                string sql = @"
-                    INSERT INTO kullanici (""Ad"", ""Soyad"", ""KullaniciAdi"", ""Eposta"", ""Sifre"", ""KullaniciTipi"",""Telefon"")
-                    VALUES (@Ad, @Soyad, @KullaniciAdi, @Eposta, @Sifre, @Tip, @Telefon);";
-
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@Ad", Ad);
-                cmd.Parameters.AddWithValue("@Soyad", Soyad);
-                cmd.Parameters.AddWithValue("@KullaniciAdi", KullaniciAdi);
-                cmd.Parameters.AddWithValue("@Eposta", Eposta);
-                cmd.Parameters.AddWithValue("@Sifre", Sifre);
-                cmd.Parameters.AddWithValue("@Telefon", Telefon);
-                cmd.Parameters.AddWithValue("@Tip", "Musteri"); // kayıt olan varsayılan müşteri olsun
-
-                int sonuc = await cmd.ExecuteNonQueryAsync();
-
-                if (sonuc > 0)
+                var req = new RegisterRequest
                 {
-                    await DisplayAlert("Başarılı", "Kayıt işlemi tamamlandı!", "Tamam");
-                    await Navigation.PushAsync(new GirisSayfasi());
-                }
-                else
+                    Ad = Ad,
+                    Soyad = Soyad,
+                    KullaniciAdi = KullaniciAdi,
+                    Eposta = Eposta,
+                    Sifre = Sifre,
+                    Telefon = Telefon
+                };
+
+                var resp = await _api.PostJsonAsync<RegisterRequest, RegisterResponse>("auth/register", req);
+
+                if (resp == null)
                 {
-                    await DisplayAlert("Hata", "Kayıt eklenemedi!", "Tamam");
+                    await DisplayAlert("Hata", "Sunucuya ulaşılamadı.", "Tamam");
+                    return;
                 }
-            }
-            catch (PostgresException pex) when (pex.SqlState == "23505")
-            {
-                // Unique ihlali (ör: KullaniciAdi unique ise)
-                await DisplayAlert("Hata", "Bu kullanıcı adı veya e-posta zaten kayıtlı.", "Tamam");
+
+                if (!resp.Basarili)
+                {
+                    await DisplayAlert("Hata", resp.Mesaj, "Tamam");
+                    return;
+                }
+
+                await DisplayAlert("Başarılı", resp.Mesaj, "Tamam");
+                await Navigation.PushAsync(new GirisSayfasi(_api));
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Hata", "Veritabanı hatası: " + ex.Message, "Tamam");
+                await DisplayAlert("Hata", ex.Message, "Tamam");
             }
         }
 
         private async void GirisYap_Tapped(object sender, TappedEventArgs e)
         {
-            await Navigation.PushAsync(new GirisSayfasi());
+            await Navigation.PushAsync(new GirisSayfasi(_api));
         }
     }
 }

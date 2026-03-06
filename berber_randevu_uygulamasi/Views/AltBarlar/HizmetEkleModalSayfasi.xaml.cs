@@ -4,15 +4,17 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar;
 
 public partial class HizmetEkleModalSayfasi : ContentPage
 {
+    protected readonly ApiClient _api;
     private readonly int _berberId;
     private readonly int _calisanId;
     private readonly Func<Task>? _onSaved;
-    public HizmetEkleModalSayfasi(int berberId, int calisanId, Func<Task>? onSaved = null)
+    public HizmetEkleModalSayfasi(ApiClient api,int berberId, int calisanId, Func<Task>? onSaved = null)
 	{
 		InitializeComponent();
         _berberId = berberId;
         _calisanId = calisanId;
         _onSaved = onSaved;
+        _api = api;
     }
     private async void Kaydet_Clicked(object sender, EventArgs e)
     {

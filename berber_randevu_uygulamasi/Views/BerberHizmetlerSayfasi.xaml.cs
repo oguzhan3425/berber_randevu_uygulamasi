@@ -11,11 +11,14 @@ namespace berber_randevu_uygulamasi.Views;
 
 public partial class BerberHizmetlerSayfasi : ContentPage
 {
+    protected readonly ApiClient _api;
+
     private List<Hizmet> _veri = new();
 
-    public BerberHizmetlerSayfasi()
+    public BerberHizmetlerSayfasi(ApiClient api )
     {
         InitializeComponent();
+        _api = api;
     }
 
     protected override async void OnAppearing()
@@ -115,7 +118,7 @@ public partial class BerberHizmetlerSayfasi : ContentPage
         int calisanId = await GetCalisanIdByKullaniciIdAsync(UserSession.KullaniciId);
 
         await Navigation.PushModalAsync(new NavigationPage(
-            new HizmetEkleModalSayfasi(berberId, calisanId, async () =>
+            new HizmetEkleModalSayfasi(_api,berberId, calisanId, async () =>
             {
                 await HizmetleriYukleAsync();
             })

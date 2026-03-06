@@ -7,9 +7,12 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar
 {
     public partial class TelefonDegistirSayfasi : ContentPage
     {
-        public TelefonDegistirSayfasi()
+        protected readonly ApiClient _api;
+
+        public TelefonDegistirSayfasi(ApiClient api)
         {
             InitializeComponent();
+            _api = api;
         }
 
         private async void TelefonGuncelle_Clicked(object sender, EventArgs e)

@@ -141,10 +141,10 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\GirisSayfasi.xaml">
-	    <Generator>MSBuild:Compile</Generator>
+	    <Generator></Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\KayitOlSayfasi.xaml">
-	    <Generator>MSBuild:Compile</Generator>
+	    <Generator></Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\ProfilDuzenleSayfasi.xaml">
 	    <Generator></Generator>
@@ -158,6 +158,9 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Resources\Assets\" />
 	</ItemGroup>
 
 </Project>

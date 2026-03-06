@@ -7,14 +7,18 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar
 {
     public partial class SifreDegistirSayfasi : ContentPage
     {
+        protected readonly ApiClient _api;
+
+
         // Varsayýlan: alt bar kapalý.
         // Ýstersen new SifreDegistirSayfasi(showBottomBar:true) diyerek açarsýn.
         private readonly bool _showBottomBar;
 
-        public SifreDegistirSayfasi(bool showBottomBar = false)
+        public SifreDegistirSayfasi(ApiClient api,bool showBottomBar = false)
         {
             InitializeComponent();
             _showBottomBar = showBottomBar;
+            _api = api;
         }
 
         protected override async void OnAppearing()

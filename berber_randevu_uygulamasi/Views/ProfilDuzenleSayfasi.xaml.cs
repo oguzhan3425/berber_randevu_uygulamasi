@@ -1,53 +1,53 @@
-using System;
-using Microsoft.Maui.Controls;
-using Npgsql;
 using berber_randevu_uygulamasi.Services;
+using berber_randevu_uygulamasi.Views.AltBarlar;
+using berber_randevu_uygulamasi.Models.Dtos;
+using Microsoft.Maui.Controls;
+using System;
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class ProfilDuzenleSayfasi : ContentPage
     {
-        public ProfilDuzenleSayfasi()
+        protected readonly ApiClient _api;
+
+        public ProfilDuzenleSayfasi(ApiClient api)
         {
             InitializeComponent();
+            _api = api;
 
             // Ýlk açýlýþta isim yaz
             if (this.FindByName<Label>("lblAdSoyad") is Label lbl)
                 lbl.Text = $"{UserSession.Ad} {UserSession.Soyad}".Trim();
-
-            // Ýlk açýlýþta foto çek
-            KullaniciBilgileriniYukle();
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
 
-            // Geri dönünce foto/telefon yenilensin
-            KullaniciBilgileriniYukle();
+            // Geri dönünce foto yenilensin
+            await KullaniciBilgileriniYukleAsync();
         }
 
-        private async void KullaniciBilgileriniYukle()
+        private async System.Threading.Tasks.Task KullaniciBilgileriniYukleAsync()
         {
             try
             {
-                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-                await conn.OpenAsync();
+                var user = await _api.GetAsync<UserProfileDto>($"users/{UserSession.KullaniciId}/profile");
 
-                string sql = @"SELECT ""ProfilFoto""
-                               FROM kullanici
-                               WHERE ""ID"" = @id
-                               LIMIT 1;";
+                var fotoUrl = (user?.ProfilFotoUrl ?? "").Trim();
 
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@id", UserSession.KullaniciId);
+                if (!string.IsNullOrWhiteSpace(fotoUrl) &&
+                    Uri.TryCreate(fotoUrl, UriKind.Absolute, out var uri))
+                {
+                    imgProfil.Source = ImageSource.FromUri(uri);
+                }
+                else
+                {
+                    imgProfil.Source = "default_user.png";
+                }
 
-                object? fotoObj = await cmd.ExecuteScalarAsync();
-                string? foto = fotoObj?.ToString();
-
-                imgProfil.Source = string.IsNullOrWhiteSpace(foto)
-                    ? "default_user.png"
-                    : foto;
+                // Ýsim/telefon vs. istersen burada da güncelleyebilirsin:
+                // lblAdSoyad.Text = $"{user?.Ad} {user?.Soyad}".Trim();
             }
             catch (Exception ex)
             {
@@ -59,12 +59,12 @@ namespace berber_randevu_uygulamasi.Views
         // Alt bar - Butonlar
         private async void AnaSayfaClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AnaSayfa());
+            await Navigation.PushAsync(new AnaSayfa(_api));
         }
 
         private async void RandevularClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new RandevuAlSayfasi());
+            await Navigation.PushAsync(new RandevuAlSayfasi(_api));
         }
 
         private async void ProfilClicked(object sender, EventArgs e)
@@ -75,17 +75,21 @@ namespace berber_randevu_uygulamasi.Views
         // Ayarlar
         private async void SifreDegistir_Tapped(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AltBarlar.SifreDegistirSayfasi());
+            await Navigation.PushAsync(new SifreDegistirSayfasi(_api));
         }
 
         private async void ProfilFotoDegistir_Tapped(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AltBarlar.ProfilFotoDegistirSayfasi());
+            await Navigation.PushAsync(new ProfilFotoDegistirSayfasi(
+                _api,
+                FotoHedefi.SahipProfilFoto,
+                UserSession.KullaniciId
+            ));
         }
 
         private async void TelefonDegistir_Tapped(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AltBarlar.TelefonDegistirSayfasi());
+            await Navigation.PushAsync(new TelefonDegistirSayfasi(_api));
         }
     }
 }

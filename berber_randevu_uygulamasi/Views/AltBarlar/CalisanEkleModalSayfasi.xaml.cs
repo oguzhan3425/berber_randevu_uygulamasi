@@ -8,16 +8,18 @@ namespace berber_randevu_uygulamasi.Views
 {
     public partial class CalisanEkleModalSayfasi : ContentPage
     {
+        protected readonly ApiClient _api;
         private readonly int _berberId;
         private readonly Func<Task>? _onAddedRefresh;
 
         private int _bulunanKullaniciId = 0;
 
-        public CalisanEkleModalSayfasi(int berberId, Func<Task>? onAddedRefresh = null)
+        public CalisanEkleModalSayfasi(ApiClient api,int berberId, Func<Task>? onAddedRefresh = null)
         {
             InitializeComponent();
             _berberId = berberId;
             _onAddedRefresh = onAddedRefresh;
+            _api = api;
         }
 
         private async void Ara_Clicked(object sender, EventArgs e)

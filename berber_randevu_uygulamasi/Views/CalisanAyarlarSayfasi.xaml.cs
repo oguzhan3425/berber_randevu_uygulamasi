@@ -1,17 +1,20 @@
+using berber_randevu_uygulamasi.Services;
+using berber_randevu_uygulamasi.Views.AltBarlar;
+using Npgsql;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Npgsql;
-using berber_randevu_uygulamasi.Services;
-using berber_randevu_uygulamasi.Views.AltBarlar;
+
 
 namespace berber_randevu_uygulamasi.Views;
 
 public partial class CalisanAyarlarSayfasi : ContentPage
 {
-    public CalisanAyarlarSayfasi()
+    protected readonly ApiClient _api;
+    public CalisanAyarlarSayfasi(ApiClient api)
     {
         InitializeComponent();
+        _api = api;
     }
 
     protected override async void OnAppearing()
@@ -53,22 +56,22 @@ public partial class CalisanAyarlarSayfasi : ContentPage
     private async void ProfilFotoDegistir_Clicked(object sender, EventArgs e)
     {
         // Senin mevcut sayfan (ayný tasarým / ayný sayfa)
-        await Navigation.PushAsync(new ProfilFotoDegistirSayfasi());
+        await Navigation.PushAsync(new ProfilFotoDegistirSayfasi( _api, FotoHedefi.SahipProfilFoto,UserSession.KullaniciId ));
     }
 
     private async void KisiselBilgiler_Tapped(object sender, TappedEventArgs e)
     {
-        await Navigation.PushAsync(new BerberKisiselBilgilerSayfasi());
+        await Navigation.PushAsync(new BerberKisiselBilgilerSayfasi(_api));
     }
 
     private async void SifreDegistir_Tapped(object sender, TappedEventArgs e)
     {
-        await Navigation.PushAsync(new SifreDegistirSayfasi());
+        await Navigation.PushAsync(new SifreDegistirSayfasi(_api));
     }
 
     private async void CalismaSaatleri_Tapped(object sender, TappedEventArgs e)
     {
-        await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi());
+        await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi(_api));
     }
 
     private async void CikisYap_Tapped(object sender, TappedEventArgs e)
@@ -82,6 +85,6 @@ public partial class CalisanAyarlarSayfasi : ContentPage
         UserSession.Soyad = "";
 
         // Giriþ sayfasýna dön (sende Login sayfasý adý neyse onu yaz)
-        Application.Current!.Windows[0].Page = new NavigationPage(new GirisSayfasi());
+        Application.Current!.Windows[0].Page = new NavigationPage(new GirisSayfasi(_api));
     }
 }

@@ -9,13 +9,15 @@ namespace berber_randevu_uygulamasi.Views;
 
 public partial class BerberRandevularSayfasi : ContentPage
 {
+    protected readonly ApiClient _api;
     bool _gelecekSecili = true;
     double _panTotalY = 0;
 
-    public BerberRandevularSayfasi()
+    public BerberRandevularSayfasi(ApiClient api)
     {
         InitializeComponent();
         SegmentAyarla(gelecek: true);
+        _api = api;
     }
 
     protected override async void OnAppearing()

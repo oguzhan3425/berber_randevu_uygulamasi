@@ -1,33 +1,32 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
-using Npgsql;
+using Microsoft.Maui.Controls;
 using berber_randevu_uygulamasi.Services;
+using berber_randevu_uygulamasi.Models.Dtos;
 using berber_randevu_uygulamasi.Views.AltBarlar;
 
 namespace berber_randevu_uygulamasi.Views;
 
 public partial class BerberAyarlarSayfasi : ContentPage
 {
-    public BerberAyarlarSayfasi()
+    protected readonly ApiClient _api;
+
+    private int _berberId;                 // dükkan foto deðiþtir için lazým
+    private string _dukkanFotoUrl = "";    // opsiyonel
+    private string _profilFotoUrl = "";    // opsiyonel
+
+    public BerberAyarlarSayfasi(ApiClient api)
     {
         InitializeComponent();
+        _api = api;
 
-        // defaultlar
         imgDukkan.Source = "default_shop.png";
         imgSahip.Source = "default_user.png";
-    }
-
-    public enum FotoMode
-    {
-        Dukkan,
-        Sahip
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
         await FotolariYukleAsync();
     }
 
@@ -35,74 +34,34 @@ public partial class BerberAyarlarSayfasi : ContentPage
     {
         try
         {
-            int berberId = await GetBerberIdByKullaniciIdAsync(UserSession.KullaniciId);
-
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
-
-            // 1) DÜKKAN FOTO (Berberler tablosu)
-            // Kolon adý farklýysa: "DukkanFoto" kýsmýný deðiþtir
-            string sqlShop = @"
-                SELECT ""ResimYolu""
-                FROM ""Berberler""
-                WHERE ""BerberID"" = @bid
-                LIMIT 1;";
-
-            await using (var cmdShop = new NpgsqlCommand(sqlShop, conn))
+            // 1) Kullanýcý profil (profil foto url buradan)
+            var user = await _api.GetAsync<UserProfileDto>($"users/{UserSession.KullaniciId}/profile");
+            if (user != null)
             {
-                cmdShop.Parameters.AddWithValue("@bid", berberId);
-                var obj = await cmdShop.ExecuteScalarAsync();
+                _profilFotoUrl = (user.ProfilFotoUrl ?? "").Trim();
+                SetImageFromUrl(imgSahip, _profilFotoUrl, "default_user.png");
 
-                if (obj != null && obj != DBNull.Value)
-                {
-                    var resimYolu = obj as string;
-
-                    if (!string.IsNullOrWhiteSpace(resimYolu))
-                        imgDukkan.Source = resimYolu;
-                    else
-                        imgDukkan.Source = "default_shop.png";
-                }
-                else
-                {
-                    imgDukkan.Source = "default_shop.png";
-                }
+                // Session tipi boþsa doldur (lazým olabilir)
+                if (string.IsNullOrWhiteSpace(UserSession.KullaniciTipi))
+                    UserSession.KullaniciTipi = (user.KullaniciTipi ?? "").Trim();
+            }
+            else
+            {
+                imgSahip.Source = "default_user.png";
             }
 
-
-            // 2) SAHÝP FOTO (kullanici tablosu)
-            // Kolon adý farklýysa: "ProfilFoto" kýsmýný deðiþtir
-            string sqlOwner = @"
-                SELECT ""ProfilFoto""
-                FROM kullanici
-                WHERE ""ID"" = @kid
-                LIMIT 1;";
-
-            await using (var cmdOwner = new NpgsqlCommand(sqlOwner, conn))
+            // 2) Berber bilgisi (dükkan foto url + berberId buradan)
+            var berber = await _api.GetAsync<BerberDto>($"berberler/by-kullanici/{UserSession.KullaniciId}");
+            if (berber != null)
             {
-                cmdOwner.Parameters.AddWithValue("@kid", UserSession.KullaniciId);
-                var obj = await cmdOwner.ExecuteScalarAsync();
-
-                if (obj != null && obj != DBNull.Value)
-                {
-                    string? path = obj as string;
-
-                    if (!string.IsNullOrWhiteSpace(path))
-                    {
-                        // path tam yolsa:
-                        if (File.Exists(path))
-                            imgSahip.Source = ImageSource.FromFile(path);
-                        else
-                            imgSahip.Source = "default_user.png";
-                    }
-                    else
-                    {
-                        imgSahip.Source = "default_user.png";
-                    }
-                }
-                else
-                {
-                    imgSahip.Source = "default_user.png";
-                }
+                _berberId = berber.BerberId;
+                _dukkanFotoUrl = (berber.DukkanFotoUrl ?? "").Trim();
+                SetImageFromUrl(imgDukkan, _dukkanFotoUrl, "default_shop.png");
+            }
+            else
+            {
+                _berberId = 0;
+                imgDukkan.Source = "default_shop.png";
             }
         }
         catch (Exception ex)
@@ -113,54 +72,68 @@ public partial class BerberAyarlarSayfasi : ContentPage
         }
     }
 
-    private async Task<int> GetBerberIdByKullaniciIdAsync(int kullaniciId)
+    private static void SetImageFromUrl(Image img, string? url, string defaultImage)
     {
-        await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-        await conn.OpenAsync();
-
-        string sql = @"
-            SELECT ""BerberID""
-            FROM ""Berberler""
-            WHERE ""KullaniciID"" = @kid
-            LIMIT 1;";
-
-        await using var cmd = new NpgsqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@kid", kullaniciId);
-
-        var obj = await cmd.ExecuteScalarAsync();
-        if (obj == null) throw new Exception("Bu kullanýcýya ait berber kaydý bulunamadý.");
-
-        return Convert.ToInt32(obj);
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(url) &&
+                Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                img.Source = ImageSource.FromUri(uri);
+            }
+            else
+            {
+                img.Source = defaultImage;
+            }
+        }
+        catch
+        {
+            img.Source = defaultImage;
+        }
     }
 
-    // ÞÝMDÝLÝK örnek eventler (senin sayfalarýna yönlendiririz)
+    // ------------------ Navigations ------------------
+
     private async void KisiselBilgiler_Tapped(object sender, TappedEventArgs e)
-    {
-        await Navigation.PushAsync(new BerberKisiselBilgilerSayfasi());
-    }
+        => await Navigation.PushAsync(new BerberKisiselBilgilerSayfasi(_api));
 
     private async void CalismaSaatleri_Tapped(object sender, TappedEventArgs e)
-    {
-        await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi());
-    }
+        => await Navigation.PushAsync(new BerberCalismaSaatleriSayfasi(_api));
 
     private async void SifreDegistir_Tapped(object sender, TappedEventArgs e)
-    {
-        await Navigation.PushAsync(new SifreDegistirSayfasi());
-    }
+        => await Navigation.PushAsync(new SifreDegistirSayfasi(_api));
+
     private async void CikisYap_Tapped(object sender, TappedEventArgs e)
-    {
-        await Navigation.PushAsync(new GirisSayfasi());
-    }
+        => await Navigation.PushAsync(new GirisSayfasi(_api));
+
+    // ------------------ Foto Deðiþtir ------------------
 
     private async void DukkanFotoDegistir_Clicked(object sender, EventArgs e)
     {
-        int berberId = await GetBerberIdByKullaniciIdAsync(UserSession.KullaniciId);
-        await Navigation.PushAsync(new ProfilFotoDegistirSayfasi(FotoHedefi.DukkanFoto, berberId));
+        try
+        {
+            // BerberId daha önce gelmemiþ olabilir (ilk açýlýþ vs.)
+            if (_berberId <= 0)
+            {
+                var berber = await _api.GetAsync<BerberDto>($"berberler/by-kullanici/{UserSession.KullaniciId}");
+                if (berber == null)
+                {
+                    await DisplayAlert("Hata", "Berber kaydý bulunamadý.", "Tamam");
+                    return;
+                }
+                _berberId = berber.BerberId;
+            }
+
+            await Navigation.PushAsync(new ProfilFotoDegistirSayfasi(_api, FotoHedefi.DukkanFoto, _berberId));
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", ex.Message, "Tamam");
+        }
     }
 
     private async void SahipFotoDegistir_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new ProfilFotoDegistirSayfasi(FotoHedefi.SahipProfilFoto, UserSession.KullaniciId));
+        await Navigation.PushAsync(new ProfilFotoDegistirSayfasi(_api, FotoHedefi.SahipProfilFoto, UserSession.KullaniciId));
     }
 }

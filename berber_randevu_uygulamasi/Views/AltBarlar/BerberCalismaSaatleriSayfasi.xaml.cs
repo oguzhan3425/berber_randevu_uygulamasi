@@ -10,9 +10,10 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar;
 
 public partial class BerberCalismaSaatleriSayfasi : ContentPage
 {
+    protected readonly ApiClient _api;
     private int _calisanId;
 
-    public BerberCalismaSaatleriSayfasi()
+    public BerberCalismaSaatleriSayfasi(ApiClient api)
     {
         InitializeComponent();
 
@@ -25,6 +26,7 @@ public partial class BerberCalismaSaatleriSayfasi : ContentPage
         swPaz.Toggled += (s, e) => SetDayEnabled(7, e.Value);
 
         btnKaydet.Clicked += BtnKaydet_Clicked;
+        _api = api;
     }
 
     protected override async void OnAppearing()

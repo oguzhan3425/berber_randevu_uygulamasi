@@ -2,71 +2,56 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Maui.Controls;
-using Npgsql;
 using berber_randevu_uygulamasi.Models;
+using berber_randevu_uygulamasi.Models.Dtos;
 using berber_randevu_uygulamasi.Services;
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class CalisanSecimSayfasi : ContentPage
     {
+        protected readonly ApiClient _api;
         private readonly Berber _berber;
 
-        public CalisanSecimSayfasi(Berber berber)
+        public CalisanSecimSayfasi(Berber berber, ApiClient api)
         {
             InitializeComponent();
             _berber = berber;
-            _ = CalisanlariYukleAsync();
+            _api = api;
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await CalisanlariYukleAsync();
         }
 
         private async System.Threading.Tasks.Task CalisanlariYukleAsync()
         {
-            List<CalisanKart> liste = new();
-
             try
             {
-                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-                await conn.OpenAsync();
+                var dtoListe = await _api.GetAsync<List<CalisanListeDto>>($"calisanlar/by-berber/{_berber.BerberID}");
 
-                // ? Calisanlar tablosu: CalisanID, KullaniciID, BerberID
-                // ? Ad/Soyad kullanýcý tablosundan alýnýr
-                string sql = @"
-                    SELECT
-                        c.""CalisanID"",
-                        c.""BerberID"",
-                        k.""Ad"",
-                        k.""Soyad"",
-                        k.""ProfilFoto""
-                    FROM ""calisanlar"" c
-                    JOIN kullanici k ON k.""ID"" = c.""KullaniciID""
-                    WHERE c.""BerberID"" = @bid
-                    ORDER BY k.""Ad"", k.""Soyad"";";
-
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@bid", _berber.BerberID);
-
-                await using var dr = await cmd.ExecuteReaderAsync();
-
-                while (await dr.ReadAsync())
+                if (dtoListe == null)
                 {
-                    int calisanId = dr.GetInt32(0);
-                    int berberId = dr.GetInt32(1);
-                    string ad = dr.IsDBNull(2) ? "" : dr.GetString(2);
-                    string soyad = dr.IsDBNull(3) ? "" : dr.GetString(3);
-                    string foto = dr.IsDBNull(4) ? "" : dr.GetString(4);
+                    await DisplayAlert("Hata", "Çalýþan listesi alýnamadý.", "Tamam");
+                    return;
+                }
 
+                var liste = new List<CalisanKart>();
+
+                foreach (var item in dtoListe)
+                {
                     liste.Add(new CalisanKart
                     {
-                        CalisanID = calisanId,
-                        BerberID = berberId,
-                        Ad = ad,
-                        Soyad = soyad,
-
-                        // Senin DB’de "DeneyimYili / Uzmanlik" yok.
-                        // Þimdilik boþ býrakýyoruz. Ýstersen tabloya ekleriz.
-                        Uzmanlik = "",
-
-                        Foto = string.IsNullOrWhiteSpace(foto) ? "default_berber.png" : foto
+                        CalisanID = item.CalisanID,
+                        BerberID = item.BerberID,
+                        Ad = item.Ad ?? "",
+                        Soyad = item.Soyad ?? "",
+                        Uzmanlik = item.Uzmanlik ?? "",
+                        Foto = string.IsNullOrWhiteSpace(item.FotoUrl)
+                            ? "default_berber.png"
+                            : item.FotoUrl
                     });
                 }
 
@@ -83,10 +68,7 @@ namespace berber_randevu_uygulamasi.Views
             if (e.CurrentSelection.FirstOrDefault() is CalisanKart secilen)
             {
                 CalisanCollection.SelectedItem = null;
-
-                
-
-                await Navigation.PushAsync(new RandevuOlusturSayfasi(secilen));
+                await Navigation.PushAsync(new RandevuOlusturSayfasi(secilen, _api));
             }
         }
     }

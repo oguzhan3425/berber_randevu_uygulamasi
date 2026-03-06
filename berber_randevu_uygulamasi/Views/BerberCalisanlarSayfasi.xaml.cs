@@ -9,11 +9,13 @@ namespace berber_randevu_uygulamasi.Views;
 
 public partial class BerberCalisanlarSayfasi : ContentPage
 {
+    protected readonly ApiClient _api;
     private List<CalisanKart> _veri = new();
 
-    public BerberCalisanlarSayfasi()
+    public BerberCalisanlarSayfasi(ApiClient api)
     {
         InitializeComponent();
+        _api = api; 
     }
 
     protected override async void OnAppearing()
@@ -125,7 +127,7 @@ public partial class BerberCalisanlarSayfasi : ContentPage
 
         // Modal sayfayý aç
         await Navigation.PushModalAsync(new NavigationPage(
-            new CalisanEkleModalSayfasi(berberId, async () =>
+            new CalisanEkleModalSayfasi(_api,berberId, async () =>
             {
                 // Ekleme baþarýlý olunca listeyi yenile
                 await CalisanlariYukleAsync();

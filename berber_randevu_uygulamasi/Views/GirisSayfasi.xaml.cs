@@ -1,116 +1,76 @@
-﻿using System;
-using Microsoft.Maui.Controls;
-using Npgsql;
-using berber_randevu_uygulamasi.Services; // DbConfig burada değilse namespace'i düzelt
+﻿using berber_randevu_uygulamasi.Services;
+using berber_randevu_uygulamasi.Models.Dtos;
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class GirisSayfasi : ContentPage
     {
-        public GirisSayfasi()
+        protected readonly ApiClient _api;
+
+        public GirisSayfasi(ApiClient api)
         {
             InitializeComponent();
+            _api = api;
         }
 
         private async void GirisYap_Clicked(object sender, EventArgs e)
         {
+
+           // var r = await _api.GetStringAsync("ping");
+            //await DisplayAlert("Ping", r, "OK");
             string kadi = kullaniciAdiEntry.Text?.Trim() ?? "";
             string sifre = SifreEntry.Text ?? "";
+            var dbg = await _api.PostJsonDebugAsync("auth/login", new { KullaniciAdi = kadi, Sifre = sifre });
+          //  await DisplayAlert("LOGIN", $"status: {dbg.status}\nbody: {dbg.body}", "OK");
+           // await DisplayAlert("TEST", $"kadi='{kadi}' sifreLen={sifre.Length}", "OK");
+            var req = new LoginRequest { KullaniciAdi = kadi, Sifre = sifre };
+            var resp = await _api.PostJsonAsync<LoginRequest, LoginResponse>("auth/login", req);
 
-            if (string.IsNullOrWhiteSpace(kadi) || string.IsNullOrWhiteSpace(sifre))
+            if (resp == null)
             {
-                await DisplayAlert("Uyarı", "Lütfen kullanıcı adı ve şifreyi giriniz.", "Tamam");
+                await DisplayAlert("Hata", "Sunucuya ulaşılamadı.", "Tamam");
                 return;
             }
 
-            try
+            if (!resp.Basarili)
             {
-                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-                await conn.OpenAsync();
-
-                string sql = @"
-                    SELECT ""ID"", ""Ad"", ""Soyad"",""Telefon"", ""KullaniciTipi""
-                    FROM kullanici
-                    WHERE ""KullaniciAdi"" = @kadi AND ""Sifre"" = @sifre
-                    LIMIT 1;";
-
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@kadi", kadi);
-                cmd.Parameters.AddWithValue("@sifre", sifre);
-
-                await using var dr = await cmd.ExecuteReaderAsync();
-
-                if (await dr.ReadAsync())
-                {
-                    int id = dr.GetInt32(dr.GetOrdinal("ID"));
-                    string ad = dr.IsDBNull(dr.GetOrdinal("Ad")) ? "" : dr.GetString(dr.GetOrdinal("Ad"));
-                    string soyad = dr.IsDBNull(dr.GetOrdinal("Soyad")) ? "" : dr.GetString(dr.GetOrdinal("Soyad"));
-                    string tip = dr.IsDBNull(dr.GetOrdinal("KullaniciTipi")) ? "" : dr.GetString(dr.GetOrdinal("KullaniciTipi"));
-                    string telefon = dr.IsDBNull(dr.GetOrdinal("Telefon")) ? "" : dr.GetString(dr.GetOrdinal("Telefon"));
-
-                    UserSession.KullaniciId = id;
-                    UserSession.Ad = ad;
-                    UserSession.Soyad = soyad;
-                    UserSession.KullaniciTipi = tip;
-                    UserSession.Telefon = telefon; // UserSession'da alan varsa
-
-                    string adSoyad = (ad + " " + soyad).Trim();
-
-                    // 🎯 Rol bazlı yönlendirme
-                    if (tip == "Berber")
-                    {
-                        await EnsureBerberAsCalisanAsync(id);  // ✅ kendini çalışan yap
-                        await Navigation.PushAsync(new BerberAnaPanelSayfasi());
-                        return;
-                    }
-
-                    if (tip == "Calisan")
-                    {
-                        await Navigation.PushAsync(new CalisanAnaSayfa());
-                        return;
-                    }
-
-                    if (tip == "Musteri")
-                    {
-                        await Navigation.PushAsync(new AnaSayfa());
-                        return;
-                    }
-
-                    await DisplayAlert("Hata", "Kullanıcı tipi tanımlanmamış.", "Tamam");
-                }
-                else
-                {
-                    await DisplayAlert("Hata", "Kullanıcı adı veya şifre hatalı!", "Tekrar Dene");
-                }
+                await DisplayAlert("Hata", resp.Mesaj, "Tekrar Dene");
+                return;
             }
-            catch (Exception ex)
+
+            // ✅ Session doldur
+            UserSession.KullaniciId = resp.Id;
+            UserSession.Ad = resp.Ad;
+            UserSession.Soyad = resp.Soyad;
+            UserSession.KullaniciTipi = resp.KullaniciTipi;
+            UserSession.Telefon = resp.Telefon;
+
+            // ✅ Rol bazlı yönlendirme (aynı mantık)
+            if (resp.KullaniciTipi == "Berber")
             {
-                await DisplayAlert("Hata", ex.Message, "Tamam");
+                await Navigation.PushAsync(new BerberAnaPanelSayfasi(_api));
+                return;
             }
-        }
 
-        private static async Task EnsureBerberAsCalisanAsync(int kullaniciId)
-        {
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
+            if (resp.KullaniciTipi == "Calisan")
+            {
+                await Navigation.PushAsync(new CalisanAnaSayfa(_api));
+                return;
+            }
 
-            string sql = @"
-        INSERT INTO calisanlar (""KullaniciID"", ""BerberID"")
-        SELECT b.""KullaniciID"", b.""BerberID""
-        FROM ""Berberler"" b
-        WHERE b.""KullaniciID"" = @kid
-          AND NOT EXISTS (
-              SELECT 1 FROM calisanlar c WHERE c.""KullaniciID"" = b.""KullaniciID""
-          );";
+            if (resp.KullaniciTipi == "Musteri")
+            {
+                await Navigation.PushAsync(new AnaSayfa(_api));
+                return;
+            }
 
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@kid", kullaniciId);
-            await cmd.ExecuteNonQueryAsync();
+            await DisplayAlert("Hata", "Kullanıcı tipi tanımlanmamış.", "Tamam");
+
         }
 
         private async void KayitOl_Tapped(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new KayitOlSayfasi());
+            await Navigation.PushAsync(new KayitOlSayfasi(_api));
         }
 
         private void KullaniciAdiEntry_Completed(object sender, EventArgs e)

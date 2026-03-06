@@ -3,24 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
-using Npgsql;
 using berber_randevu_uygulamasi.Models;
+using berber_randevu_uygulamasi.Models.Dtos;
 using berber_randevu_uygulamasi.Services;
 
 namespace berber_randevu_uygulamasi.Views
 {
     public partial class RandevuAlSayfasi : ContentPage
     {
+        protected readonly ApiClient _api;
         private readonly List<Berber> tumBerberler = new();
 
-        public RandevuAlSayfasi()
+        public RandevuAlSayfasi(ApiClient api)
         {
             InitializeComponent();
-            _ = BerberleriYukleAsync();
+            _api = api;
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await BerberleriYukleAsync();
         }
 
         // ---------------------------
-        //  VERÝTABANINDAN BERBER ÇEKME
+        //  API'DEN BERBER ÇEKME
         // ---------------------------
         private async Task BerberleriYukleAsync()
         {
@@ -28,35 +35,28 @@ namespace berber_randevu_uygulamasi.Views
             {
                 tumBerberler.Clear();
 
-                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-                await conn.OpenAsync();
+                var liste = await _api.GetAsync<List<BerberListeDto>>("berberler");
 
-                // ? PostgreSQL + Büyük harfli tablo/kolon isimleri (týrnaklý)
-                // Eðer þema kullanýyorsan: FROM public."Berberler" veya "berber"."Berberler"
-                string sql = @"
-                    SELECT 
-                        ""BerberID"", ""BerberAdi"", ""Adres"", ""Telefon"", 
-                        ""ResimYolu"", ""Puan"", ""AcilisSaati"", ""KapanisSaati""
-                    FROM ""Berberler""
-                    ORDER BY ""BerberAdi"";";
-
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                await using var dr = await cmd.ExecuteReaderAsync();
-
-                while (await dr.ReadAsync())
+                if (liste == null)
                 {
-                    string? dbResim = dr.IsDBNull(4) ? null : dr.GetString(4);
+                    await DisplayAlert("Hata", "Berber listesi alýnamadý.", "Tamam");
+                    return;
+                }
 
+                foreach (var item in liste)
+                {
                     tumBerberler.Add(new Berber
                     {
-                        BerberID = dr.GetInt32(0),
-                        BerberAdi = dr.IsDBNull(1) ? "" : dr.GetString(1),
-                        Adres = dr.IsDBNull(2) ? "" : dr.GetString(2),
-                        Telefon = dr.IsDBNull(3) ? "" : dr.GetString(3),
-                        ResimYolu = string.IsNullOrWhiteSpace(dbResim) ? "default_berber.png" : dbResim,
-                        Puan = dr.IsDBNull(5) ? 0 : dr.GetDecimal(5),
-                        AcilisSaati = dr.IsDBNull(6) ? TimeSpan.Zero : dr.GetTimeSpan(6),
-                        KapanisSaati = dr.IsDBNull(7) ? TimeSpan.Zero : dr.GetTimeSpan(7)
+                        BerberID = item.BerberId,
+                        BerberAdi = item.BerberAdi ?? "",
+                        Adres = item.Adres ?? "",
+                        Telefon = item.Telefon ?? "",
+                        ResimYolu = string.IsNullOrWhiteSpace(item.DukkanFotoUrl)
+                            ? "default_berber.png"
+                            : item.DukkanFotoUrl,
+                        Puan = item.Puan,
+                        AcilisSaati = ParseTime(item.Acilis),
+                        KapanisSaati = ParseTime(item.Kapanis)
                     });
                 }
 
@@ -66,6 +66,11 @@ namespace berber_randevu_uygulamasi.Views
             {
                 await DisplayAlert("Hata", "Berberler yüklenemedi: " + ex.Message, "Tamam");
             }
+        }
+
+        private TimeSpan ParseTime(string? text)
+        {
+            return TimeSpan.TryParse(text, out var ts) ? ts : TimeSpan.Zero;
         }
 
         // ---------------------------
@@ -90,7 +95,7 @@ namespace berber_randevu_uygulamasi.Views
             if (e.CurrentSelection.FirstOrDefault() is Berber secilenBerber)
             {
                 BerberCollection.SelectedItem = null;
-                await Navigation.PushAsync(new CalisanSecimSayfasi(secilenBerber));
+                await Navigation.PushAsync(new CalisanSecimSayfasi(secilenBerber, _api));
             }
         }
 
@@ -99,17 +104,17 @@ namespace berber_randevu_uygulamasi.Views
         // ---------------------------
         private async void AnaSayfaClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AnaSayfa());
+            await Navigation.PushAsync(new AnaSayfa(_api));
         }
 
         private async void RandevuAlClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new RandevuAlSayfasi());
+            await Navigation.PushAsync(new RandevuAlSayfasi(_api));
         }
 
         private async void ProfilClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new ProfilDuzenleSayfasi());
+            await Navigation.PushAsync(new ProfilDuzenleSayfasi(_api));
         }
     }
 }

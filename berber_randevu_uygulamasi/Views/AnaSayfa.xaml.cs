@@ -7,9 +7,11 @@ namespace berber_randevu_uygulamasi.Views
 {
     public partial class AnaSayfa : ContentPage
     {
-        public AnaSayfa()
+        protected readonly ApiClient _api;
+        public AnaSayfa(ApiClient api)
         {
             InitializeComponent();
+            _api = api;
             KullaniciBilgileriniYukle();
         }
         private async void KullaniciBilgileriniYukle()
@@ -58,12 +60,12 @@ namespace berber_randevu_uygulamasi.Views
 
         private async void AnaSayfaClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AnaSayfa());
+            await Navigation.PushAsync(new AnaSayfa(_api));
         }
 
         private async void RandevuAlClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new RandevuAlSayfasi());
+            await Navigation.PushAsync(new RandevuAlSayfasi(_api));
         }
 
         private void HizmetlerClicked(object sender, EventArgs e)
@@ -73,7 +75,7 @@ namespace berber_randevu_uygulamasi.Views
 
         private async void ProfilClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new ProfilDuzenleSayfasi());
+            await Navigation.PushAsync(new ProfilDuzenleSayfasi(_api));
         }
     }
 }

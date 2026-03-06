@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Npgsql;
+using berber_randevu_uygulamasi.Models.Dtos;
 using berber_randevu_uygulamasi.Services;
 using Microsoft.Maui.Controls;
 
@@ -14,10 +14,11 @@ namespace berber_randevu_uygulamasi.Views
 {
     public partial class RandevuOlusturSayfasi : ContentPage
     {
+        protected readonly ApiClient _api;
         public RandevuOlusturVM VM { get; }
 
         private readonly int _calisanId;
-        private readonly int _berberId; // INSERT için dursun (raporlama/þube vs.)
+        private readonly int _berberId;
 
         private DateOnly _seciliTarih = DateOnly.FromDateTime(DateTime.Now);
 
@@ -26,7 +27,6 @@ namespace berber_randevu_uygulamasi.Views
 
         private const int _dakikaAdim = 5;
 
-        // DB’den gelen dolu aralýklar (randevunun kendi bloðu)
         private List<(TimeSpan bas, TimeSpan bit)> _doluAraliklar = new();
 
         private int? _oncekiSaatIndex = null;
@@ -34,15 +34,15 @@ namespace berber_randevu_uygulamasi.Views
 
         private bool _isRefreshing;
 
-        public RandevuOlusturSayfasi(Models.CalisanKart calisan)
+        public RandevuOlusturSayfasi(Models.CalisanKart calisan, ApiClient api)
         {
             InitializeComponent();
-            // ? Tarih picker: bugün - 7 gün
+            _api = api;
+
             dateTarih.MinimumDate = DateTime.Today;
             dateTarih.MaximumDate = DateTime.Today.AddDays(7);
             dateTarih.Date = DateTime.Today;
 
-            // sayfadaki DateOnly tarih de uyumlu olsun
             _seciliTarih = DateOnly.FromDateTime(dateTarih.Date);
 
             _calisanId = calisan.CalisanID;
@@ -54,7 +54,7 @@ namespace berber_randevu_uygulamasi.Views
             VM.CalisanAdSoyad = $"{calisan.Ad} {calisan.Soyad}".Trim();
             VM.CalisanFoto = string.IsNullOrWhiteSpace(calisan.Foto) ? "default_berber.png" : calisan.Foto;
 
-            VM.HizmetToggleCommand = new Command<HizmetItem>(async (h) =>
+            VM.HizmetToggleCommand = new Command<HizmetItem>(async h =>
             {
                 VM.HizmetToggle(h);
                 await SaatDakikaListeleriniYenileAsync(keepSelection: true);
@@ -64,21 +64,19 @@ namespace berber_randevu_uygulamasi.Views
             pickerDakika.SelectedIndexChanged += async (_, __) => await DakikaSecimiDegistiAsync();
         }
 
-        // ? Sayfaya her girildiðinde / geri dönüldüðünde DB’den yenile
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await RefreshFromDbAsync(keepSelection: true);
+            await RefreshFromApiAsync(keepSelection: true);
         }
 
         private async void dateTarih_DateSelected(object sender, DateChangedEventArgs e)
         {
             _seciliTarih = DateOnly.FromDateTime(e.NewDate);
-
-            // ? Tarih deðiþince DB'den dolu aralýklarý çekip saat/dakikayý yenile
-            await RefreshFromDbAsync(keepSelection: false);
+            await RefreshFromApiAsync(keepSelection: false);
         }
-        private async Task RefreshFromDbAsync(bool keepSelection)
+
+        private async Task RefreshFromApiAsync(bool keepSelection)
         {
             if (_isRefreshing) return;
             _isRefreshing = true;
@@ -86,7 +84,7 @@ namespace berber_randevu_uygulamasi.Views
             try
             {
                 await YukleAsync();
-                await SaatDakikaListeleriniYenileAsync(keepSelection: keepSelection);
+                await SaatDakikaListeleriniYenileAsync(keepSelection);
             }
             finally
             {
@@ -96,11 +94,9 @@ namespace berber_randevu_uygulamasi.Views
 
         private async Task YukleAsync()
         {
-            // 1) Hizmetleri çalýþan bazlý çek
             var hizmetler = await HizmetleriGetirAsync(_calisanId);
             VM.Hizmetler = new ObservableCollection<HizmetItem>(hizmetler);
 
-            // 2) Dolu aralýklarý çalýþan bazlý çek
             _doluAraliklar = await DoluAraliklariGetirAsync(_calisanId, _seciliTarih);
         }
 
@@ -110,24 +106,19 @@ namespace berber_randevu_uygulamasi.Views
             return toplam > 0 ? toplam : 30;
         }
 
-        // ? DB'deki randevunun kendi zaman bloðunda mý? (UI boyamasý için)
         private bool BaslangicAnindaDoluMu(TimeSpan t)
         {
             return _doluAraliklar.Any(d => t >= d.bas && t < d.bit);
         }
 
-        // ? Randevu oluþtururken gerçek çakýþma kontrolü (seçilen hizmet süresine göre)
         private bool SlotCakisiyorMu(TimeSpan adayBas, TimeSpan adayBit)
         {
-            // çalýþma saati dýþý
             if (adayBas < _gunBas) return true;
             if (adayBit > _gunBit) return true;
 
-            // çakýþma
             return _doluAraliklar.Any(d => adayBas < d.bit && adayBit > d.bas);
         }
 
-        // ? Bugünse geçmiþ saatler (DOLU deðil, GEÇTÝ)
         private bool SlotGectiMi(TimeSpan adayBas)
         {
             bool bugunMu = _seciliTarih == DateOnly.FromDateTime(DateTime.Now);
@@ -139,23 +130,20 @@ namespace berber_randevu_uygulamasi.Views
 
         private async Task SaatDakikaListeleriniYenileAsync(bool keepSelection)
         {
-            // Her yenilemede DB’den tekrar çek (iptal/ekleme olabilir)
             _doluAraliklar = await DoluAraliklariGetirAsync(_calisanId, _seciliTarih);
 
-            // Saat opsiyonlarý
             var saatOps = new List<OptionItem>();
 
-            // ? 18:00'ý gösterme (18:00 baþlangýçlý randevu olamaz)
             for (int h = _gunBas.Hours; h < _gunBit.Hours; h++)
             {
-                bool saatTamDolu = true;   // UI: o saat içindeki tüm dk'lar randevu bloðunda mý?
-                bool saatTamGecti = true;  // UI: o saat içindeki tüm dk'lar geçti mi?
+                bool saatTamDolu = true;
+                bool saatTamGecti = true;
 
                 for (int dk = 0; dk < 60; dk += _dakikaAdim)
                 {
                     var bas = new TimeSpan(h, dk, 0);
 
-                    bool dolu = BaslangicAnindaDoluMu(bas); // ? sadece randevunun kendi bloðu
+                    bool dolu = BaslangicAnindaDoluMu(bas);
                     bool gecti = SlotGectiMi(bas);
 
                     if (!dolu) saatTamDolu = false;
@@ -164,11 +152,10 @@ namespace berber_randevu_uygulamasi.Views
 
                 string text = $"{h:00}";
                 if (saatTamDolu) text += " (Dolu)";
-                else if (saatTamGecti) text += " (Geçti)";
+                else if (saatTamGecti) text += " (GeÃ§ti)";
 
                 bool secilemez = saatTamDolu || saatTamGecti;
-
-                saatOps.Add(new OptionItem(h, text, isDisabled: secilemez));
+                saatOps.Add(new OptionItem(h, text, secilemez));
             }
 
             var oncekiSaatValue =
@@ -186,7 +173,7 @@ namespace berber_randevu_uygulamasi.Views
 
             pickerSaat.SelectedIndex = secSaatIndex;
 
-            await DakikalariDoldurAsync(keepSelection: keepSelection);
+            await DakikalariDoldurAsync(keepSelection);
             OzetGuncelle();
         }
 
@@ -197,7 +184,7 @@ namespace berber_randevu_uygulamasi.Views
 
             if (saatItem.IsDisabled)
             {
-                await DisplayAlert("Uyarý", "Bu saat seçilemez (dolu/geçti). Lütfen baþka saat seçin.", "Tamam");
+                await DisplayAlert("UyarÄ±", "Bu saat seÃ§ilemez (dolu/geÃ§ti). LÃ¼tfen baÅŸka saat seÃ§in.", "Tamam");
 
                 if (_oncekiSaatIndex.HasValue)
                     pickerSaat.SelectedIndex = _oncekiSaatIndex.Value;
@@ -209,7 +196,7 @@ namespace berber_randevu_uygulamasi.Views
 
             _oncekiSaatIndex = pickerSaat.SelectedIndex;
 
-            await DakikalariDoldurAsync(keepSelection: false);
+            await DakikalariDoldurAsync(false);
             OzetGuncelle();
         }
 
@@ -223,23 +210,21 @@ namespace berber_randevu_uygulamasi.Views
             }
 
             var dkOps = new List<OptionItem>();
+
             for (int dk = 0; dk < 60; dk += _dakikaAdim)
             {
                 var bas = new TimeSpan(saatItem.Value, dk, 0);
 
-                // ? UI: sadece randevunun kendi bloðundaysa "Dolu"
                 bool dolu = BaslangicAnindaDoluMu(bas);
-
-                // ? UI: geçmiþ ise "Geçti"
                 bool gecti = SlotGectiMi(bas);
 
                 string text = $"{dk:00}";
                 if (dolu) text += " (Dolu)";
-                else if (gecti) text += " (Geçti)";
+                else if (gecti) text += " (GeÃ§ti)";
 
                 bool secilemez = dolu || gecti;
 
-                dkOps.Add(new OptionItem(dk, text, isDisabled: secilemez));
+                dkOps.Add(new OptionItem(dk, text, secilemez));
             }
 
             var oncekiDakikaValue =
@@ -267,7 +252,7 @@ namespace berber_randevu_uygulamasi.Views
 
             if (dkItem.IsDisabled)
             {
-                await DisplayAlert("Uyarý", "Bu dakika seçilemez (dolu/geçti). Lütfen baþka dakika seçin.", "Tamam");
+                await DisplayAlert("UyarÄ±", "Bu dakika seÃ§ilemez (dolu/geÃ§ti). LÃ¼tfen baÅŸka dakika seÃ§in.", "Tamam");
 
                 if (_oncekiDakikaIndex.HasValue)
                     pickerDakika.SelectedIndex = _oncekiDakikaIndex.Value;
@@ -294,71 +279,43 @@ namespace berber_randevu_uygulamasi.Views
             var bit = bas.Add(TimeSpan.FromMinutes(toplamSure));
 
             lblSecimOzeti.Text =
-     $"Tarih: {_seciliTarih:dd.MM.yyyy}  •  Baþlangýç: {bas:hh\\:mm}  •  Bitiþ: {bit:hh\\:mm}  •  Süre: {toplamSure} dk";
+                $"Tarih: {_seciliTarih:dd.MM.yyyy}  â€¢  BaÅŸlangÄ±Ã§: {bas:hh\\:mm}  â€¢  BitiÅŸ: {bit:hh\\:mm}  â€¢  SÃ¼re: {toplamSure} dk";
         }
 
-        // ? HÝZMETLER: SADECE ÇALIÞANA GÖRE
         private async Task<List<HizmetItem>> HizmetleriGetirAsync(int calisanId)
         {
+            var dtoList = await _api.GetAsync<List<HizmetListeDto>>($"hizmetler/by-calisan/{calisanId}");
             var liste = new List<HizmetItem>();
 
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
+            if (dtoList == null) return liste;
 
-            string sql = @"
-                SELECT ""HizmetID"", ""HizmetAdi"", ""Fiyat"", ""SureDakika""
-                FROM hizmetler
-                WHERE ""CalisanID"" = @cid
-                  AND COALESCE(""Aktif"", TRUE) = TRUE
-                ORDER BY ""HizmetAdi"";";
-
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@cid", calisanId);
-
-            await using var dr = await cmd.ExecuteReaderAsync();
-            while (await dr.ReadAsync())
+            foreach (var x in dtoList)
             {
-                var hizmetId = dr.GetInt32(0);
-                var ad = dr.IsDBNull(1) ? "" : dr.GetString(1);
-                var fiyat = dr.IsDBNull(2) ? 0 : dr.GetDecimal(2);
-                var sure = dr.IsDBNull(3) ? 30 : dr.GetInt32(3);
+                int sure = x.SureDakika <= 0 ? 30 : x.SureDakika;
 
-                if (sure <= 0) sure = 30;
-
-                liste.Add(new HizmetItem(hizmetId, ad, fiyat, sure));
+                liste.Add(new HizmetItem(
+                    x.HizmetID,
+                    x.HizmetAdi ?? "",
+                    x.Fiyat,
+                    sure));
             }
 
             return liste;
         }
 
-        // ? DOLU ARALIKLAR: SADECE ÇALIÞANA GÖRE
         private async Task<List<(TimeSpan bas, TimeSpan bit)>> DoluAraliklariGetirAsync(int calisanId, DateOnly tarih)
         {
+            var dtoList = await _api.GetAsync<List<DoluAralikDto>>(
+                $"randevular/dolu-araliklar?calisanId={calisanId}&tarih={tarih:yyyy-MM-dd}");
+
             var liste = new List<(TimeSpan bas, TimeSpan bit)>();
+            if (dtoList == null) return liste;
 
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
-
-            string sql = @"
-                SELECT ""RandevuSaati"", COALESCE(NULLIF(""SureDakika"", 0), 30)
-                FROM randevular
-                WHERE ""CalisanID"" = @cid
-                  AND ""RandevuTarihi"" = @tarih;";
-
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@cid", calisanId);
-            cmd.Parameters.AddWithValue("@tarih", tarih);
-
-            await using var dr = await cmd.ExecuteReaderAsync();
-            while (await dr.ReadAsync())
+            foreach (var x in dtoList)
             {
-                if (dr.IsDBNull(0)) continue;
+                if (!TimeSpan.TryParse(x.Baslangic, out var bas)) continue;
+                if (!TimeSpan.TryParse(x.Bitis, out var bit)) continue;
 
-                var bas = dr.GetTimeSpan(0);
-                var sure = dr.IsDBNull(1) ? 30 : dr.GetInt32(1);
-                if (sure <= 0) sure = 30;
-
-                var bit = bas.Add(TimeSpan.FromMinutes(sure));
                 liste.Add((bas, bit));
             }
 
@@ -372,9 +329,10 @@ namespace berber_randevu_uygulamasi.Views
             if (tgr.CommandParameter is HizmetItem item)
             {
                 VM.HizmetToggle(item);
-                await SaatDakikaListeleriniYenileAsync(keepSelection: true);
+                await SaatDakikaListeleriniYenileAsync(true);
             }
         }
+
         private async void RandevuOlustur_Clicked(object sender, EventArgs e)
         {
             try
@@ -382,19 +340,19 @@ namespace berber_randevu_uygulamasi.Views
                 var seciliHizmetler = VM.Hizmetler.Where(x => x.Secili).ToList();
                 if (seciliHizmetler.Count == 0)
                 {
-                    await DisplayAlert("Uyarý", "Hizmet seçiniz.", "Tamam");
+                    await DisplayAlert("UyarÄ±", "Hizmet seÃ§iniz.", "Tamam");
                     return;
                 }
 
                 if (pickerSaat.SelectedItem is not OptionItem s || s.IsDisabled)
                 {
-                    await DisplayAlert("Uyarý", "Uygun bir saat seçiniz.", "Tamam");
+                    await DisplayAlert("UyarÄ±", "Uygun bir saat seÃ§iniz.", "Tamam");
                     return;
                 }
 
                 if (pickerDakika.SelectedItem is not OptionItem d || d.IsDisabled)
                 {
-                    await DisplayAlert("Uyarý", "Uygun bir dakika seçiniz.", "Tamam");
+                    await DisplayAlert("UyarÄ±", "Uygun bir dakika seÃ§iniz.", "Tamam");
                     return;
                 }
 
@@ -407,51 +365,62 @@ namespace berber_randevu_uygulamasi.Views
                 var adayBas = new TimeSpan(s.Value, d.Value, 0);
                 var adayBit = adayBas.Add(TimeSpan.FromMinutes(toplamSure));
 
-                // ? Gerçek çakýþma kontrolü (seçilen hizmet süresine göre)
                 if (SlotCakisiyorMu(adayBas, adayBit))
                 {
-                    await DisplayAlert("Uyarý", "Bu saat aralýðý seçilen hizmet süresiyle çakýþýyor.", "Tamam");
-                    await RefreshFromDbAsync(keepSelection: true);
+                    await DisplayAlert("UyarÄ±", "Bu saat aralÄ±ÄŸÄ± seÃ§ilen hizmet sÃ¼resiyle Ã§akÄ±ÅŸÄ±yor.", "Tamam");
+                    await RefreshFromApiAsync(true);
                     return;
                 }
 
                 if (SlotGectiMi(adayBas))
                 {
-                    await DisplayAlert("Uyarý", "Geçmiþ bir saat seçilemez.", "Tamam");
+                    await DisplayAlert("UyarÄ±", "GeÃ§miÅŸ bir saat seÃ§ilemez.", "Tamam");
                     return;
                 }
 
                 bool onay = await DisplayAlert(
-                    "Randevu Onayý",
+                    "Randevu OnayÄ±",
                     $"Tarih: {_seciliTarih:dd.MM.yyyy}\n" +
-                    $"Baþlangýç: {adayBas:hh\\:mm}\n" +
-                    $"Bitiþ: {adayBit:hh\\:mm}\n" +
-                    $"Toplam Süre: {toplamSure} dk\n" +
-                    $"Toplam Ücret: {toplamUcret:0} ?\n\n" +
-                    $"Randevuyu oluþturmak istiyor musunuz?",
+                    $"BaÅŸlangÄ±Ã§: {adayBas:hh\\:mm}\n" +
+                    $"BitiÅŸ: {adayBit:hh\\:mm}\n" +
+                    $"Toplam SÃ¼re: {toplamSure} dk\n" +
+                    $"Toplam Ãœcret: {toplamUcret:0} â‚º\n\n" +
+                    $"Randevuyu oluÅŸturmak istiyor musunuz?",
                     "Tamam",
-                    "Ýptal");
+                    "Ä°ptal");
 
                 if (!onay) return;
 
-                bool ok = await RandevuKaydetAsync(
-                    UserSession.KullaniciId,
-                    _berberId,
-                    _calisanId,
-                    hizmetId,
-                    _seciliTarih,
-                    adayBas,
-                    toplamSure,
-                    toplamUcret);
+                var req = new RandevuOlusturRequest
+                {
+                    KullaniciId = UserSession.KullaniciId,
+                    BerberId = _berberId,
+                    CalisanId = _calisanId,
+                    HizmetId = hizmetId,
+                    RandevuTarihi = _seciliTarih.ToString("yyyy-MM-dd"),
+                    RandevuSaati = adayBas.ToString(@"hh\:mm"),
+                    SureDakika = toplamSure,
+                    ToplamUcret = toplamUcret
+                };
+
+                var (ok, status, body, data) =
+                    await _api.PostJsonWithBodyAsync<RandevuOlusturRequest, ApiBoolResponse>("randevular", req);
 
                 if (!ok)
                 {
-                    await DisplayAlert("Uyarý", "Bu saat aralýðý dolu.", "Tamam");
-                    await RefreshFromDbAsync(keepSelection: true);
+                    await DisplayAlert("Hata", $"Status: {status}\n{body}", "Tamam");
+                    await RefreshFromApiAsync(true);
                     return;
                 }
 
-                await DisplayAlert("Baþarýlý", "Randevu oluþturuldu.", "Tamam");
+                if (data == null || !data.Ok)
+                {
+                    await DisplayAlert("UyarÄ±", data?.Message ?? "Randevu oluÅŸturulamadÄ±.", "Tamam");
+                    await RefreshFromApiAsync(true);
+                    return;
+                }
+
+                await DisplayAlert("BaÅŸarÄ±lÄ±", data.Message ?? "Randevu oluÅŸturuldu.", "Tamam");
                 await Navigation.PopAsync();
             }
             catch (Exception ex)
@@ -460,82 +429,12 @@ namespace berber_randevu_uygulamasi.Views
             }
         }
 
-        private async Task<bool> RandevuKaydetAsync(
-            int kullaniciId,
-            int berberId,
-            int calisanId,
-            int hizmetId,
-            DateOnly tarih,
-            TimeSpan saat,
-            int sureDakika,
-            decimal toplamUcret)
-        {
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
-
-            await using var tx = await conn.BeginTransactionAsync();
-
-            var adayBas = saat;
-            var adayBit = saat.Add(TimeSpan.FromMinutes(sureDakika));
-
-            string sqlKontrol = @"
-                SELECT COUNT(*)
-                FROM randevular
-                WHERE ""CalisanID"" = @cid
-                  AND ""RandevuTarihi"" = @tarih
-                  AND (
-                        (@adayBas < (""RandevuSaati"" + (COALESCE(NULLIF(""SureDakika"",0),30) * INTERVAL '1 minute')))
-                    AND (@adayBit > ""RandevuSaati"")
-                  );";
-
-            await using (var cmd = new NpgsqlCommand(sqlKontrol, conn, tx))
-            {
-                cmd.Parameters.AddWithValue("@cid", calisanId);
-                cmd.Parameters.AddWithValue("@tarih", tarih);
-                cmd.Parameters.AddWithValue("@adayBas", adayBas);
-                cmd.Parameters.AddWithValue("@adayBit", adayBit);
-
-                int count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-                if (count > 0)
-                {
-                    await tx.RollbackAsync();
-                    return false;
-                }
-            }
-
-            string sqlInsert = @"
-                INSERT INTO randevular
-                (""KullaniciID"", ""BerberID"", ""CalisanID"", ""HizmetID"",
-                 ""RandevuTarihi"", ""RandevuSaati"", ""SureDakika"", ""ToplamUcret"")
-                VALUES
-                (@kid, @bid, @cid, @hid,
-                 @tarih, @saat, @sure, @ucret);";
-
-            await using (var cmd = new NpgsqlCommand(sqlInsert, conn, tx))
-            {
-                cmd.Parameters.AddWithValue("@kid", kullaniciId);
-                cmd.Parameters.AddWithValue("@bid", berberId);
-                cmd.Parameters.AddWithValue("@cid", calisanId);
-                cmd.Parameters.AddWithValue("@hid", hizmetId);
-                cmd.Parameters.AddWithValue("@tarih", tarih);
-                cmd.Parameters.AddWithValue("@saat", adayBas);
-                cmd.Parameters.AddWithValue("@sure", sureDakika);
-                cmd.Parameters.AddWithValue("@ucret", toplamUcret);
-
-                await cmd.ExecuteNonQueryAsync();
-            }
-
-            await tx.CommitAsync();
-            return true;
-        }
-
         private async void Geri_Clicked(object sender, EventArgs e)
         {
             await Navigation.PopAsync();
         }
     }
 
-    // Picker item modeli
     public class OptionItem
     {
         public int Value { get; }
@@ -549,7 +448,7 @@ namespace berber_randevu_uygulamasi.Views
             IsDisabled = isDisabled;
         }
 
-        public override string ToString() => Text; // ? Picker Text için garanti
+        public override string ToString() => Text;
     }
 
     public class RandevuOlusturVM : INotifyPropertyChanged
@@ -579,6 +478,7 @@ namespace berber_randevu_uygulamasi.Views
             if (item == null) return;
             item.Secili = !item.Secili;
             Raise(nameof(SeciliHizmetSayisi));
+            Raise(nameof(ToplamSeciliSureDakika));
         }
 
         public void Raise([CallerMemberName] string? name = null)
@@ -607,9 +507,9 @@ namespace berber_randevu_uygulamasi.Views
         }
         private bool _secili;
 
-        public string Check => Secili ? "?" : "";
+        public string Check => Secili ? "âœ“" : "";
         public string KartRenk => Secili ? "#1B1B1B" : "#151515";
-        public string FiyatText => $"{Fiyat:0} ?";
+        public string FiyatText => $"{Fiyat:0} â‚º";
 
         public HizmetItem(int hizmetId, string ad, decimal fiyat, int sureDakika)
         {

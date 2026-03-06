@@ -1,36 +1,31 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
-using Npgsql;
 using berber_randevu_uygulamasi.Services;
+using berber_randevu_uygulamasi.Models.Dtos;
 
 namespace berber_randevu_uygulamasi.Views.AltBarlar
 {
     public enum FotoHedefi
     {
-        SahipProfilFoto,   // kullanici."ProfilFoto"
-        DukkanFoto         // "Berberler"."ResimYolu"
+        SahipProfilFoto,
+        DukkanFoto
     }
 
     public partial class ProfilFotoDegistirSayfasi : ContentPage
     {
         private readonly FotoHedefi _hedef;
-        private readonly int _id; // hedefe göre KullaniciId veya BerberID
+        private readonly int _id;
+        private readonly ApiClient _api;
 
-        // ? Eski kullaným bozulmasýn diye parametresiz constructor da kalsýn:
-        public ProfilFotoDegistirSayfasi()
-            : this(FotoHedefi.SahipProfilFoto, UserSession.KullaniciId)
-        {
-        }
-
-        // ? Yeni: hangi tablo/kolon güncellenecek onu söyleyerek açacaðýz
-        public ProfilFotoDegistirSayfasi(FotoHedefi hedef, int id)
+        public ProfilFotoDegistirSayfasi(ApiClient api, FotoHedefi hedef, int id)
         {
             InitializeComponent();
+            _api = api;
             _hedef = hedef;
             _id = id;
 
-            // Ýstersen baþlýðý hedefe göre deðiþtir
             Title = _hedef == FotoHedefi.DukkanFoto ? "Dükkan Fotoðrafý" : "Profil Fotoðrafý";
         }
 
@@ -47,11 +42,7 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar
                 var photo = await MediaPicker.Default.CapturePhotoAsync();
                 if (photo == null) return;
 
-                string savedPath = await SavePhotoToAppFolder(photo);
-                await UpdateFotoInDb(savedPath);
-
-                await DisplayAlert("Baþarýlý", "Fotoðraf güncellendi.", "Tamam");
-                await Navigation.PopAsync();
+                await PreviewAndUploadAsync(photo);
             }
             catch (Exception ex)
             {
@@ -66,11 +57,7 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar
                 var photo = await MediaPicker.Default.PickPhotoAsync();
                 if (photo == null) return;
 
-                string savedPath = await SavePhotoToAppFolder(photo);
-                await UpdateFotoInDb(savedPath);
-
-                await DisplayAlert("Baþarýlý", "Fotoðraf güncellendi.", "Tamam");
-                await Navigation.PopAsync();
+                await PreviewAndUploadAsync(photo);
             }
             catch (Exception ex)
             {
@@ -78,50 +65,59 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar
             }
         }
 
-        private static async System.Threading.Tasks.Task<string> SavePhotoToAppFolder(FileResult photo)
+        private async Task PreviewAndUploadAsync(FileResult photo)
         {
-            string folder = FileSystem.AppDataDirectory;
-            string fileName = $"pp_{DateTime.Now:yyyyMMdd_HHmmss}{Path.GetExtension(photo.FileName)}";
-            string fullPath = Path.Combine(folder, fileName);
-
-            await using var src = await photo.OpenReadAsync();
-            await using var dst = File.OpenWrite(fullPath);
-            await src.CopyToAsync(dst);
-
-            return fullPath; // DB'ye path yazýyoruz
-        }
-
-        private async System.Threading.Tasks.Task UpdateFotoInDb(string path)
-        {
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
-
-            if (_hedef == FotoHedefi.SahipProfilFoto)
+            // 1) Fotoðrafý byte[] olarak al (hem önizleme hem upload için en saðlam yöntem)
+            byte[] bytes;
+            await using (var s = await photo.OpenReadAsync())
+            await using (var ms = new MemoryStream())
             {
-                // ? Senin mevcut yapýn: kullanici."ProfilFoto" (string path)
-                string sql = @"
-                    UPDATE kullanici
-                    SET ""ProfilFoto"" = @p
-                    WHERE ""ID"" = @id;";
-
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@p", path);
-                cmd.Parameters.AddWithValue("@id", _id);
-                await cmd.ExecuteNonQueryAsync();
+                await s.CopyToAsync(ms);
+                bytes = ms.ToArray();
             }
-            else // FotoHedefi.DukkanFoto
+
+            
+            // 3) Endpoint seç
+            var endpoint = _hedef == FotoHedefi.DukkanFoto
+                ? $"photos/dukkan/{_id}"
+                : $"photos/profil/{_id}";
+
+            // 4) Dosya adý güvenli olsun
+            var fileName = string.IsNullOrWhiteSpace(photo.FileName)
+                ? $"photo_{DateTime.Now:yyyyMMdd_HHmmss}.jpg"
+                : photo.FileName;
+
+            // 5) Upload (byte[] -> MemoryStream)
+            await using var uploadStream = new MemoryStream(bytes);
+
+            var (ok, status, body, data) = await _api.UploadPhotoDebugAsync<PhotoUploadResponse>(
+    endpoint,
+    uploadStream,
+    fileName,
+    contentType: "application/octet-stream"
+);
+
+            if (!ok)
             {
-                // ? Senin DB yapýn: "Berberler"."ResimYolu" (string)
-                string sql = @"
-                    UPDATE ""Berberler""
-                    SET ""ResimYolu"" = @p
-                    WHERE ""BerberID"" = @id;";
-
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@p", path);
-                cmd.Parameters.AddWithValue("@id", _id);
-                await cmd.ExecuteNonQueryAsync();
+                // Burada artýk gerçek hata var
+                await DisplayAlert("Upload Hata", $"Status: {status}\nBody: {body}", "Tamam");
+                return;
             }
+
+            if (data == null)
+            {
+                await DisplayAlert("Upload Hata", $"JSON okunamadý.\nStatus: {status}\nBody: {body}", "Tamam");
+                return;
+            }
+
+            if (!data.Basarili)
+            {
+                await DisplayAlert("Hata", data.Mesaj ?? "Yükleme baþarýsýz.", "Tamam");
+                return;
+            }
+
+            await DisplayAlert("Baþarýlý", data.Mesaj ?? "Fotoðraf güncellendi.", "Tamam");
+            await Navigation.PopAsync();
         }
     }
 }
