@@ -16,6 +16,7 @@ public partial class BerberAltBar : ContentView
             .Services
             .GetService<ApiClient>()!;
     }
+
     public BerberAltBar(ApiClient api)
     {
         InitializeComponent();
@@ -37,15 +38,13 @@ public partial class BerberAltBar : ContentView
     async void Ayar_Tapped(object sender, TappedEventArgs e)
         => await GitVeSayfayiDegistir(new BerberAyarlarSayfasi(_api));
 
-    static async Task GitVeSayfayiDegistir(Page hedefSayfa)
+    private static Task GitVeSayfayiDegistir(Page hedefSayfa)
     {
-        // Ayný sayfadaysan boþuna tekrar push yapma
         var mevcut = Application.Current?.Windows[0].Page?.Navigation?.NavigationStack?.LastOrDefault();
         if (mevcut?.GetType() == hedefSayfa.GetType())
-            return;
+            return Task.CompletedTask;
 
-        // Burada “push” yerine “root deðiþtir” daha temiz olur (alt bar sabit hissettirir)
         Application.Current!.Windows[0].Page = new NavigationPage(hedefSayfa);
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 }

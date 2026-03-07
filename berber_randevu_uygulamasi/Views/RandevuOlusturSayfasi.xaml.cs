@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using berber_randevu_uygulamasi.Models;
 using berber_randevu_uygulamasi.Models.Dtos;
 using berber_randevu_uygulamasi.Services;
 using Microsoft.Maui.Controls;
@@ -24,7 +25,6 @@ namespace berber_randevu_uygulamasi.Views
 
         private static readonly TimeSpan _gunBas = new(9, 0, 0);
         private static readonly TimeSpan _gunBit = new(18, 0, 0);
-
         private const int _dakikaAdim = 5;
 
         private List<(TimeSpan bas, TimeSpan bit)> _doluAraliklar = new();
@@ -34,7 +34,7 @@ namespace berber_randevu_uygulamasi.Views
 
         private bool _isRefreshing;
 
-        public RandevuOlusturSayfasi(Models.CalisanKart calisan, ApiClient api)
+        public RandevuOlusturSayfasi(CalisanKart calisan, ApiClient api)
         {
             InitializeComponent();
             _api = api;
@@ -57,7 +57,7 @@ namespace berber_randevu_uygulamasi.Views
             VM.HizmetToggleCommand = new Command<HizmetItem>(async h =>
             {
                 VM.HizmetToggle(h);
-                await SaatDakikaListeleriniYenileAsync(keepSelection: true);
+                await SaatDakikaListeleriniYenileAsync(true);
             });
 
             pickerSaat.SelectedIndexChanged += async (_, __) => await SaatSecimiDegistiAsync();
@@ -67,13 +67,13 @@ namespace berber_randevu_uygulamasi.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await RefreshFromApiAsync(keepSelection: true);
+            await RefreshFromApiAsync(true);
         }
 
         private async void dateTarih_DateSelected(object sender, DateChangedEventArgs e)
         {
             _seciliTarih = DateOnly.FromDateTime(e.NewDate);
-            await RefreshFromApiAsync(keepSelection: false);
+            await RefreshFromApiAsync(false);
         }
 
         private async Task RefreshFromApiAsync(bool keepSelection)
@@ -158,8 +158,8 @@ namespace berber_randevu_uygulamasi.Views
                 saatOps.Add(new OptionItem(h, text, secilemez));
             }
 
-            var oncekiSaatValue =
-                (keepSelection && pickerSaat.SelectedItem is OptionItem os) ? os.Value : (int?)null;
+            int? oncekiSaatValue =
+                (keepSelection && pickerSaat.SelectedItem is OptionItem os) ? os.Value : null;
 
             pickerSaat.ItemsSource = saatOps;
 
@@ -188,8 +188,8 @@ namespace berber_randevu_uygulamasi.Views
 
                 if (_oncekiSaatIndex.HasValue)
                     pickerSaat.SelectedIndex = _oncekiSaatIndex.Value;
-                else
-                    pickerSaat.SelectedIndex = ((List<OptionItem>)pickerSaat.ItemsSource).FindIndex(x => !x.IsDisabled);
+                else if (pickerSaat.ItemsSource is List<OptionItem> saatler)
+                    pickerSaat.SelectedIndex = saatler.FindIndex(x => !x.IsDisabled);
 
                 return;
             }
@@ -223,12 +223,11 @@ namespace berber_randevu_uygulamasi.Views
                 else if (gecti) text += " (Geçti)";
 
                 bool secilemez = dolu || gecti;
-
                 dkOps.Add(new OptionItem(dk, text, secilemez));
             }
 
-            var oncekiDakikaValue =
-                (keepSelection && pickerDakika.SelectedItem is OptionItem od) ? od.Value : (int?)null;
+            int? oncekiDakikaValue =
+                (keepSelection && pickerDakika.SelectedItem is OptionItem od) ? od.Value : null;
 
             pickerDakika.ItemsSource = dkOps;
 
@@ -256,8 +255,8 @@ namespace berber_randevu_uygulamasi.Views
 
                 if (_oncekiDakikaIndex.HasValue)
                     pickerDakika.SelectedIndex = _oncekiDakikaIndex.Value;
-                else
-                    pickerDakika.SelectedIndex = ((List<OptionItem>)pickerDakika.ItemsSource).FindIndex(x => !x.IsDisabled);
+                else if (pickerDakika.ItemsSource is List<OptionItem> dakikalar)
+                    pickerDakika.SelectedIndex = dakikalar.FindIndex(x => !x.IsDisabled);
 
                 return;
             }
@@ -284,10 +283,8 @@ namespace berber_randevu_uygulamasi.Views
 
         private async Task<List<HizmetItem>> HizmetleriGetirAsync(int calisanId)
         {
-            var dtoList = await _api.GetAsync<List<HizmetListeDto>>($"hizmetler/by-calisan/{calisanId}");
+            var dtoList = await _api.CalisanaGoreHizmetleriGetirAsync(calisanId);
             var liste = new List<HizmetItem>();
-
-            if (dtoList == null) return liste;
 
             foreach (var x in dtoList)
             {
@@ -305,11 +302,9 @@ namespace berber_randevu_uygulamasi.Views
 
         private async Task<List<(TimeSpan bas, TimeSpan bit)>> DoluAraliklariGetirAsync(int calisanId, DateOnly tarih)
         {
-            var dtoList = await _api.GetAsync<List<DoluAralikDto>>(
-                $"randevular/dolu-araliklar?calisanId={calisanId}&tarih={tarih:yyyy-MM-dd}");
+            var dtoList = await _api.DoluAraliklariGetirAsync(calisanId, tarih);
 
             var liste = new List<(TimeSpan bas, TimeSpan bit)>();
-            if (dtoList == null) return liste;
 
             foreach (var x in dtoList)
             {
@@ -324,9 +319,7 @@ namespace berber_randevu_uygulamasi.Views
 
         private async void Hizmet_Tapped(object sender, TappedEventArgs e)
         {
-            if (sender is not TapGestureRecognizer tgr) return;
-
-            if (tgr.CommandParameter is HizmetItem item)
+            if ((sender as BindableObject)?.BindingContext is HizmetItem item)
             {
                 VM.HizmetToggle(item);
                 await SaatDakikaListeleriniYenileAsync(true);
@@ -391,36 +384,25 @@ namespace berber_randevu_uygulamasi.Views
 
                 if (!onay) return;
 
-                var req = new RandevuOlusturRequest
+                var req = new RandevuCreateRequest
                 {
                     KullaniciId = UserSession.KullaniciId,
-                    BerberId = _berberId,
                     CalisanId = _calisanId,
                     HizmetId = hizmetId,
-                    RandevuTarihi = _seciliTarih.ToString("yyyy-MM-dd"),
-                    RandevuSaati = adayBas.ToString(@"hh\:mm"),
-                    SureDakika = toplamSure,
-                    ToplamUcret = toplamUcret
+                    Tarih = _seciliTarih.ToString("yyyy-MM-dd"),
+                    Saat = adayBas.ToString(@"hh\:mm")
                 };
 
-                var (ok, status, body, data) =
-                    await _api.PostJsonWithBodyAsync<RandevuOlusturRequest, ApiBoolResponse>("randevular", req);
+                var result = await _api.RandevuOlusturAsync(req);
 
-                if (!ok)
+                if (!result.Success)
                 {
-                    await DisplayAlert("Hata", $"Status: {status}\n{body}", "Tamam");
+                    await DisplayAlert("Uyarı", result.Message, "Tamam");
                     await RefreshFromApiAsync(true);
                     return;
                 }
 
-                if (data == null || !data.Ok)
-                {
-                    await DisplayAlert("Uyarı", data?.Message ?? "Randevu oluşturulamadı.", "Tamam");
-                    await RefreshFromApiAsync(true);
-                    return;
-                }
-
-                await DisplayAlert("Başarılı", data.Message ?? "Randevu oluşturuldu.", "Tamam");
+                await DisplayAlert("Başarılı", result.Message, "Tamam");
                 await Navigation.PopAsync();
             }
             catch (Exception ex)
@@ -455,16 +437,30 @@ namespace berber_randevu_uygulamasi.Views
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public string CalisanAdSoyad { get => _calisanAdSoyad; set { _calisanAdSoyad = value; Raise(); } }
+        public string CalisanAdSoyad
+        {
+            get => _calisanAdSoyad;
+            set { _calisanAdSoyad = value; Raise(); }
+        }
         private string _calisanAdSoyad = "";
 
-        public string CalisanFoto { get => _calisanFoto; set { _calisanFoto = value; Raise(); } }
+        public string CalisanFoto
+        {
+            get => _calisanFoto;
+            set { _calisanFoto = value; Raise(); }
+        }
         private string _calisanFoto = "default_berber.png";
 
         public ObservableCollection<HizmetItem> Hizmetler
         {
             get => _hizmetler;
-            set { _hizmetler = value; Raise(); Raise(nameof(SeciliHizmetSayisi)); }
+            set
+            {
+                _hizmetler = value;
+                Raise();
+                Raise(nameof(SeciliHizmetSayisi));
+                Raise(nameof(ToplamSeciliSureDakika));
+            }
         }
         private ObservableCollection<HizmetItem> _hizmetler = new();
 

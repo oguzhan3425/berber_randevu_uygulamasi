@@ -1,16 +1,14 @@
 using berber_randevu_uygulamasi.Services;
 using berber_randevu_uygulamasi.Views.AltBarlar;
-using Npgsql;
 using System;
-using System.IO;
 using System.Threading.Tasks;
-
 
 namespace berber_randevu_uygulamasi.Views;
 
 public partial class CalisanAyarlarSayfasi : ContentPage
 {
     protected readonly ApiClient _api;
+
     public CalisanAyarlarSayfasi(ApiClient api)
     {
         InitializeComponent();
@@ -27,25 +25,24 @@ public partial class CalisanAyarlarSayfasi : ContentPage
     {
         try
         {
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
+            var profil = await _api.KullaniciMiniProfilGetirAsync(UserSession.KullaniciId);
 
-            string sql = @"
-                SELECT COALESCE(""ProfilFoto"", '')
-                FROM kullanici
-                WHERE ""ID"" = @id
-                LIMIT 1;";
-
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", UserSession.KullaniciId);
-
-            var obj = await cmd.ExecuteScalarAsync();
-            var path = obj?.ToString() ?? "";
-
-            if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
-                imgProfil.Source = ImageSource.FromFile(path);
+            if (!string.IsNullOrWhiteSpace(profil.ProfilFoto))
+            {
+                if (profil.ProfilFoto.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                    profil.ProfilFoto.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                {
+                    imgProfil.Source = ImageSource.FromUri(new Uri(profil.ProfilFoto));
+                }
+                else
+                {
+                    imgProfil.Source = profil.ProfilFoto;
+                }
+            }
             else
+            {
                 imgProfil.Source = "default_user.png";
+            }
         }
         catch
         {
@@ -55,8 +52,9 @@ public partial class CalisanAyarlarSayfasi : ContentPage
 
     private async void ProfilFotoDegistir_Clicked(object sender, EventArgs e)
     {
-        // Senin mevcut sayfan (ayný tasarým / ayný sayfa)
-        await Navigation.PushAsync(new ProfilFotoDegistirSayfasi( _api, FotoHedefi.SahipProfilFoto,UserSession.KullaniciId ));
+        await Navigation.PushAsync(
+            new ProfilFotoDegistirSayfasi(_api, FotoHedefi.SahipProfilFoto, UserSession.KullaniciId)
+        );
     }
 
     private async void KisiselBilgiler_Tapped(object sender, TappedEventArgs e)
@@ -79,12 +77,10 @@ public partial class CalisanAyarlarSayfasi : ContentPage
         bool ok = await DisplayAlert("Çýkýþ", "Çýkýþ yapmak istiyor musun?", "Evet", "Hayýr");
         if (!ok) return;
 
-        // Session temizle (senin projende nasýl yapýyorsan ona göre)
         UserSession.KullaniciId = 0;
         UserSession.Ad = "";
         UserSession.Soyad = "";
 
-        // Giriþ sayfasýna dön (sende Login sayfasý adý neyse onu yaz)
         Application.Current!.Windows[0].Page = new NavigationPage(new GirisSayfasi(_api));
     }
 }

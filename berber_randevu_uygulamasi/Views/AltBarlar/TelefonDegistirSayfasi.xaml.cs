@@ -1,6 +1,5 @@
 using System;
 using Microsoft.Maui.Controls;
-using Npgsql;
 using berber_randevu_uygulamasi.Services;
 
 namespace berber_randevu_uygulamasi.Views.AltBarlar
@@ -25,7 +24,6 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar
                 return;
             }
 
-            // Basit kontrol (istersen daha sýký regex yaparýz)
             if (tel.Length < 10)
             {
                 await DisplayAlert("Uyarý", "Telefon numarasý çok kýsa.", "Tamam");
@@ -34,27 +32,16 @@ namespace berber_randevu_uygulamasi.Views.AltBarlar
 
             try
             {
-                await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-                await conn.OpenAsync();
+                var result = await _api.TelefonGuncelleAsync(UserSession.KullaniciId, tel);
 
-                string sql = @"UPDATE kullanici
-                               SET ""Telefon"" = @tel
-                               WHERE ""ID"" = @id;";
-
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@tel", tel);
-                cmd.Parameters.AddWithValue("@id", UserSession.KullaniciId);
-
-                int affected = await cmd.ExecuteNonQueryAsync();
-                if (affected > 0)
+                if (!result.Success)
                 {
-                    await DisplayAlert("Baþarýlý", "Telefon güncellendi.", "Tamam");
-                    await Navigation.PopAsync();
+                    await DisplayAlert("Hata", result.Message, "Tamam");
+                    return;
                 }
-                else
-                {
-                    await DisplayAlert("Hata", "Güncelleme baþarýsýz.", "Tamam");
-                }
+
+                await DisplayAlert("Baþarýlý", result.Message, "Tamam");
+                await Navigation.PopAsync();
             }
             catch (Exception ex)
             {

@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
-using Npgsql;
 using berber_randevu_uygulamasi.Models;
-using berber_randevu_uygulamasi.Services;            
+using berber_randevu_uygulamasi.Services;
 using berber_randevu_uygulamasi.Views.AltBarlar;
 
 namespace berber_randevu_uygulamasi.Views;
@@ -12,10 +11,12 @@ namespace berber_randevu_uygulamasi.Views;
 public partial class BerberHizmetlerSayfasi : ContentPage
 {
     protected readonly ApiClient _api;
-
     private List<Hizmet> _veri = new();
 
-    public BerberHizmetlerSayfasi(ApiClient api )
+    private int _berberId;
+    private int _calisanId;
+
+    public BerberHizmetlerSayfasi(ApiClient api)
     {
         InitializeComponent();
         _api = api;
@@ -31,37 +32,23 @@ public partial class BerberHizmetlerSayfasi : ContentPage
     {
         try
         {
-            int berberId = await GetBerberIdByKullaniciIdAsync(UserSession.KullaniciId);
-            int calisanId = await GetCalisanIdByKullaniciIdAsync(UserSession.KullaniciId); // berberin kendi çalýþan kaydý
+            var response = await _api.GetBerberHizmetleriAsync(UserSession.KullaniciId);
 
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
-
-            string sql = @"
-                SELECT ""HizmetID"", ""CalisanID"", ""HizmetAdi"", ""Fiyat"", ""SureDakika"", ""BerberID"", ""Aktif""
-                FROM hizmetler
-                WHERE ""BerberID"" = @bid
-                  AND ""CalisanID"" = @cid
-                ORDER BY ""HizmetAdi"";";
-
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@bid", berberId);
-            cmd.Parameters.AddWithValue("@cid", calisanId);
-
-            await using var dr = await cmd.ExecuteReaderAsync();
+            _berberId = response.BerberID;
+            _calisanId = response.CalisanID;
 
             var liste = new List<Hizmet>();
-            while (await dr.ReadAsync())
+            foreach (var item in response.Hizmetler)
             {
                 liste.Add(new Hizmet
                 {
-                    HizmetID = dr.GetInt32(0),
-                    CalisanID = dr.IsDBNull(1) ? 0 : dr.GetInt32(1),
-                    HizmetAdi = dr.IsDBNull(2) ? "" : dr.GetString(2),
-                    Fiyat = dr.IsDBNull(3) ? 0 : dr.GetDecimal(3),
-                    SureDakika = dr.IsDBNull(4) ? 0 : dr.GetInt32(4),
-                    BerberID = dr.IsDBNull(5) ? berberId : dr.GetInt32(5),
-                    Aktif = !dr.IsDBNull(6) && dr.GetBoolean(6)
+                    HizmetID = item.HizmetID,
+                    CalisanID = item.CalisanID,
+                    HizmetAdi = item.HizmetAdi,
+                    Fiyat = item.Fiyat,
+                    SureDakika = item.SureDakika,
+                    BerberID = item.BerberID,
+                    Aktif = item.Aktif
                 });
             }
 
@@ -74,55 +61,28 @@ public partial class BerberHizmetlerSayfasi : ContentPage
         }
     }
 
-    private async Task<int> GetBerberIdByKullaniciIdAsync(int kullaniciId)
-    {
-        await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-        await conn.OpenAsync();
-
-        string sql = @"
-            SELECT ""BerberID""
-            FROM ""Berberler""
-            WHERE ""KullaniciID"" = @kid
-            LIMIT 1;";
-
-        await using var cmd = new NpgsqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@kid", kullaniciId);
-
-        var obj = await cmd.ExecuteScalarAsync();
-        if (obj == null) throw new Exception("Bu kullanýcýya ait berber kaydý bulunamadý.");
-        return Convert.ToInt32(obj);
-    }
-
-    private async Task<int> GetCalisanIdByKullaniciIdAsync(int kullaniciId)
-    {
-        await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-        await conn.OpenAsync();
-
-        string sql = @"
-            SELECT ""CalisanID""
-            FROM calisanlar
-            WHERE ""KullaniciID"" = @kid
-            LIMIT 1;";
-
-        await using var cmd = new NpgsqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("@kid", kullaniciId);
-
-        var obj = await cmd.ExecuteScalarAsync();
-        if (obj == null) throw new Exception("Bu kullanýcý için calisanlar kaydý yok. (Berber giriþinde otomatik ekleme çalýþmamýþ olabilir.)");
-        return Convert.ToInt32(obj);
-    }
-
     async void Ekle_Clicked(object sender, EventArgs e)
     {
-        int berberId = await GetBerberIdByKullaniciIdAsync(UserSession.KullaniciId);
-        int calisanId = await GetCalisanIdByKullaniciIdAsync(UserSession.KullaniciId);
-
-        await Navigation.PushModalAsync(new NavigationPage(
-            new HizmetEkleModalSayfasi(_api,berberId, calisanId, async () =>
+        try
+        {
+            if (_berberId <= 0 || _calisanId <= 0)
             {
-                await HizmetleriYukleAsync();
-            })
-        ));
+                var response = await _api.GetBerberHizmetleriAsync(UserSession.KullaniciId);
+                _berberId = response.BerberID;
+                _calisanId = response.CalisanID;
+            }
+
+            await Navigation.PushModalAsync(new NavigationPage(
+                new HizmetEkleModalSayfasi(_api, _berberId, _calisanId, async () =>
+                {
+                    await HizmetleriYukleAsync();
+                })
+            ));
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", ex.Message, "Tamam");
+        }
     }
 
     async void Duzenle_Clicked(object sender, EventArgs e)
@@ -140,15 +100,15 @@ public partial class BerberHizmetlerSayfasi : ContentPage
 
         try
         {
-            await using var conn = new NpgsqlConnection(DbConfig.ConnectionString);
-            await conn.OpenAsync();
+            var result = await _api.BerberHizmetAktifPasifAsync(h.HizmetID);
 
-            string sql = @"UPDATE hizmetler SET ""Aktif"" = NOT ""Aktif"" WHERE ""HizmetID"" = @id;";
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", h.HizmetID);
-            await cmd.ExecuteNonQueryAsync();
+            if (!result.Success)
+            {
+                await DisplayAlert("Hata", result.Message, "Tamam");
+                return;
+            }
 
-            h.Aktif = !h.Aktif;
+            h.Aktif = result.Aktif;
 
             listeHizmet.ItemsSource = null;
             listeHizmet.ItemsSource = _veri;

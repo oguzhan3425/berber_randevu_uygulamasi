@@ -11,4 +11,10 @@
         public int SureDakika { get; set; }
         public decimal ToplamUcret { get; set; }
     }
+    public class RandevuCreateResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public int? RandevuId { get; set; }
+    }
 }

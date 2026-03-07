@@ -1,6 +1,5 @@
 using berber_randevu_uygulamasi.Services;
 
-
 namespace berber_randevu_uygulamasi.Views.AltBarlar;
 
 public partial class CalisanAltBar : ContentView
@@ -17,10 +16,11 @@ public partial class CalisanAltBar : ContentView
             .Services
             .GetService<ApiClient>()!;
     }
+
     public CalisanAltBar(ApiClient api)
     {
         InitializeComponent();
-        _api = api;  
+        _api = api;
     }
 
     async void Panel_Tapped(object sender, TappedEventArgs e)
@@ -35,13 +35,13 @@ public partial class CalisanAltBar : ContentView
     async void Ayar_Tapped(object sender, TappedEventArgs e)
         => await GitVeSayfayiDegistir(new CalisanAyarlarSayfasi(_api));
 
-    static async Task GitVeSayfayiDegistir(Page hedefSayfa)
+    private static Task GitVeSayfayiDegistir(Page hedefSayfa)
     {
         var mevcut = Application.Current?.Windows[0].Page?.Navigation?.NavigationStack?.LastOrDefault();
         if (mevcut?.GetType() == hedefSayfa.GetType())
-            return;
+            return Task.CompletedTask;
 
         Application.Current!.Windows[0].Page = new NavigationPage(hedefSayfa);
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 }
